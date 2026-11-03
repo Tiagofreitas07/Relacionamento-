@@ -1,0 +1,159 @@
+index.html
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relacionamento | Conexões que importam</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f5f2;
+      color: #343434;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 24px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+      color: #765b50;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #555;
+      margin-left: 22px;
+      font-size: 14px;
+    }
+
+    .hero {
+      padding: 100px 8%;
+      background: #eee7e1;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 44px;
+      color: #60483e;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      line-height: 1.7;
+      max-width: 650px;
+      margin: auto;
+      color: #655d58;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 15px 30px;
+      background: #765b50;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    .content {
+      padding: 70px 8%;
+      text-align: center;
+    }
+
+    .content h2 {
+      font-size: 30px;
+      color: #60483e;
+      margin-bottom: 18px;
+    }
+
+    .content p {
+      max-width: 700px;
+      margin: auto;
+      line-height: 1.8;
+      color: #666;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      background: #60483e;
+      color: white;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      nav a {
+        margin: 0 7px;
+      }
+
+      .hero h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Relacionamento.</div>
+    <nav>
+      <a href="#inicio">Início</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#proposito">Propósito</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="inicio">
+    <h1>Relacionamentos transformam vidas.</h1>
+    <p>
+      Um espaço dedicado a compreender as relações humanas,
+      fortalecer vínculos e construir conexões mais saudáveis
+      e significativas.
+    </p>
+    <a href="#sobre" class="button">Conheça nosso propósito</a>
+  </section>
+
+  <section class="content" id="sobre">
+    <h2>Sobre o Relacionamento</h2>
+    <p>
+      Acreditamos que a qualidade das nossas relações influencia
+      profundamente a maneira como vivemos, sentimos e construímos
+      nossa história.
+    </p>
+  </section>
+
+  <section class="content" id="proposito">
+    <h2>Conexões que importam</h2>
+    <p>
+      Família, relacionamentos e vínculos humanos são o centro
+      de uma jornada de conhecimento, reflexão e desenvolvimento.
+    </p>
+  </section>
+
+  <footer>
+    © 2026 Relacionamento. Todos os direitos reservados.
+  </footer>
+
+</body>
+</html>
