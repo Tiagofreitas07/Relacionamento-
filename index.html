@@ -1,364 +1,860 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Entre Nós | Relações que importam</title>
-  <meta name="description" content="Um espaço para compreender, cuidar e fortalecer os relacionamentos.">
-
+  <title>Entre Nós | Relacionamentos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --petroleo: #315b59;
+      --petroleo-escuro: #254846;
+      --areia: #bd9676;
+      --fundo: #f6f5f1;
+      --branco: #ffffff;
+      --texto: #303b39;
+      --cinza: #7b8581;
+      --borda: #e9e8e2;
+      --suave: #edf2ef;
+    }
+
+    * { box-sizing: border-box; }
 
     body {
-      font-family: Arial, sans-serif;
-      background: #f6f4ef;
-      color: #343d3b;
-      min-height: 100vh;
+      margin: 0;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: var(--fundo);
+      color: var(--texto);
     }
 
-    header {
-      padding: 22px 7%;
-      background: #fff;
-      border-bottom: 1px solid #e9e5dd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    button, input { font: inherit; }
 
-    .logo { font-size: 25px; font-weight: bold; color: #315b59; }
-    .logo span { color: #bd9676; }
-
-    .hero {
-      padding: 65px 20px 35px;
-      text-align: center;
-      max-width: 760px;
-      margin: auto;
-    }
-
-    .eyebrow {
-      color: #9a795f;
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      color: #315b59;
-      font-family: Georgia, serif;
-      font-size: clamp(34px, 6vw, 48px);
-      font-weight: normal;
-      line-height: 1.15;
-      margin-bottom: 18px;
-    }
-
-    .hero p {
-      color: #68716d;
-      font-size: 16px;
-      line-height: 1.8;
-    }
-
-    .panel {
-      background: white;
-      max-width: 440px;
-      margin: 15px auto 65px;
-      padding: 32px;
-      border-radius: 14px;
-      box-shadow: 0 8px 35px rgba(40, 55, 50, .07);
-    }
-
-    .panel h2 {
-      color: #315b59;
-      font-family: Georgia, serif;
-      font-size: 27px;
-      font-weight: normal;
-      margin-bottom: 9px;
-    }
-
-    .subtitle {
-      color: #7b817d;
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    label {
-      display: block;
-      color: #48534f;
-      font-size: 13px;
-      font-weight: bold;
-      margin: 16px 0 7px;
-    }
-
-    input {
-      width: 100%;
-      padding: 13px 14px;
-      border: 1px solid #deded7;
-      border-radius: 7px;
-      font-size: 15px;
-      outline: none;
-      background: #fff;
-    }
-
-    input:focus { border-color: #527b75; }
-
-    button {
-      border: none;
-      border-radius: 7px;
-      padding: 14px 18px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .primary {
-      width: 100%;
-      background: #315b59;
-      color: white;
-      margin-top: 23px;
-    }
-
-    .primary:hover { background: #254947; }
-    button:disabled { opacity: .6; cursor: wait; }
-
-    .switch {
-      text-align: center;
-      margin-top: 20px;
-      color: #737b76;
-      font-size: 14px;
-    }
-
-    .switch button {
-      background: none;
-      color: #315b59;
-      padding: 5px;
-      font-weight: bold;
-    }
-
-    .message {
-      display: none;
-      padding: 12px;
-      border-radius: 7px;
-      font-size: 13px;
-      line-height: 1.5;
-      margin-top: 16px;
-    }
-
-    .error { background: #f9e9e5; color: #873f32; }
-    .success { background: #e8f1eb; color: #315b49; }
+    button { cursor: pointer; }
 
     .hidden { display: none !important; }
 
-    .dashboard {
-      max-width: 850px;
-      margin: 35px auto 70px;
-      padding: 35px;
+    /* AUTENTICAÇÃO */
+
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #edf1ed, #f8f5ef);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      padding: 38px;
       background: white;
-      border-radius: 14px;
-      box-shadow: 0 8px 35px rgba(40, 55, 50, .06);
+      border-radius: 18px;
+      box-shadow: 0 12px 45px rgba(30, 55, 50, .08);
     }
 
-    .dashboard h2 {
+    .brand {
+      color: var(--petroleo);
       font-family: Georgia, serif;
-      font-size: 30px;
-      font-weight: normal;
-      color: #315b59;
-      margin-bottom: 12px;
+      font-size: 29px;
+      font-weight: bold;
+      letter-spacing: -1px;
     }
 
-    .welcome-text {
-      color: #69736e;
-      line-height: 1.7;
-      margin-bottom: 28px;
+    .brand span { color: var(--areia); }
+
+    .auth-subtitle {
+      color: var(--cinza);
+      line-height: 1.6;
+      margin: 12px 0 28px;
+      font-size: 14px;
     }
 
-    .feature {
-      border: 1px solid #e9e5dd;
-      padding: 22px;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
+    .field { margin-bottom: 17px; }
 
-    .feature h3 { color: #315b59; margin-bottom: 8px; }
-    .feature p { color: #737b76; line-height: 1.6; font-size: 14px; }
-
-    .logout {
-      background: #eeeae3;
-      color: #48534f;
+    .field label {
+      display: block;
+      margin-bottom: 7px;
       font-size: 13px;
-      padding: 10px 15px;
+      font-weight: 600;
     }
 
-    footer {
+    .field input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--borda);
+      border-radius: 9px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--petroleo);
+    }
+
+    .primary-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 9px;
+      color: white;
+      background: var(--petroleo);
+      font-weight: 600;
+    }
+
+    .primary-btn:hover { background: var(--petroleo-escuro); }
+
+    .auth-switch {
       text-align: center;
-      padding: 25px;
-      color: #858b85;
+      margin-top: 22px;
+      color: var(--cinza);
+      font-size: 14px;
+    }
+
+    .auth-switch button {
+      background: none;
+      border: none;
+      color: var(--petroleo);
+      font-weight: 700;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--petroleo);
+    }
+
+    /* ESTRUTURA PRINCIPAL */
+
+    .app-layout {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 255px;
+      background: var(--branco);
+      border-right: 1px solid var(--borda);
+      padding: 27px 17px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand {
+      padding: 0 13px 30px;
+    }
+
+    .sidebar-brand small {
+      display: block;
+      color: var(--cinza);
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-top: 5px;
+      text-transform: uppercase;
+    }
+
+    .menu-label {
+      padding: 0 13px;
+      margin: 16px 0 9px;
+      color: #9a9e99;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: none;
+      background: transparent;
+      padding: 12px 13px;
+      margin: 2px 0;
+      border-radius: 9px;
+      text-align: left;
+      color: #66716d;
+      font-size: 13px;
+      transition: .2s;
+    }
+
+    .nav-item:hover {
+      background: #f4f6f3;
+      color: var(--petroleo);
+    }
+
+    .nav-item.active {
+      background: var(--suave);
+      color: var(--petroleo);
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      width: 21px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid var(--borda);
+      padding-top: 15px;
+    }
+
+    .user-mini {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--suave);
+      color: var(--petroleo);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-mini strong {
+      display: block;
       font-size: 12px;
     }
 
-    @media(max-width: 550px) {
-      header { padding: 18px 5%; }
-      .panel, .dashboard { margin: 15px; padding: 24px; }
-      .hero { padding-top: 45px; }
+    .user-mini small {
+      color: var(--cinza);
+      font-size: 11px;
+    }
+
+    .logout-btn {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 12px;
+      text-align: left;
+      color: #7c7771;
+      font-size: 13px;
+    }
+
+    .logout-btn:hover { color: #a34d43; }
+
+    /* CONTEÚDO */
+
+    .main-area {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 75px;
+      padding: 0 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-bottom: 1px solid var(--borda);
+    }
+
+    .topbar-label {
+      font-size: 13px;
+      color: var(--cinza);
+    }
+
+    .topbar-right {
+      font-size: 12px;
+      color: var(--petroleo);
+      font-weight: 600;
+    }
+
+    .mobile-menu {
+      display: none;
+      border: none;
+      background: transparent;
+      color: var(--petroleo);
+      font-size: 23px;
+    }
+
+    .content {
+      max-width: 1250px;
+      margin: 0 auto;
+      padding: 38px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .welcome {
+      margin-bottom: 30px;
+    }
+
+    .welcome h1 {
+      font-family: Georgia, serif;
+      font-weight: 500;
+      font-size: 30px;
+      margin: 0 0 9px;
+      color: var(--petroleo-escuro);
+    }
+
+    .welcome p {
+      margin: 0;
+      color: var(--cinza);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .section-heading {
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-weight: 500;
+      margin: 30px 0 16px;
+      color: var(--petroleo-escuro);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 17px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--borda);
+      border-radius: 13px;
+      padding: 23px;
+      min-width: 0;
+    }
+
+    .card-icon {
+      width: 39px;
+      height: 39px;
+      border-radius: 10px;
+      background: var(--suave);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      margin: 0 0 9px;
+      color: var(--petroleo-escuro);
+    }
+
+    .card p {
+      font-size: 13px;
+      color: var(--cinza);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 15px;
+      background: #f3f0e9;
+      color: #88765f;
+      padding: 6px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .welcome-banner {
+      background: var(--petroleo);
+      color: white;
+      padding: 29px;
+      border-radius: 14px;
+      margin-bottom: 25px;
+    }
+
+    .welcome-banner h2 {
+      font-family: Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      margin: 0 0 9px;
+    }
+
+    .welcome-banner p {
+      max-width: 650px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e1eae5;
+    }
+
+    .info-box {
+      padding: 20px;
+      background: #f0f3ef;
+      border-radius: 10px;
+      color: #596963;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 20px;
+    }
+
+    .page-title {
+      font-family: Georgia, serif;
+      font-size: 29px;
+      font-weight: 500;
+      color: var(--petroleo-escuro);
+      margin: 0 0 9px;
+    }
+
+    .page-description {
+      color: var(--cinza);
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 0 0 28px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #a0a29c;
+      font-size: 11px;
+      padding: 35px 0 10px;
+    }
+
+    @media(max-width: 850px) {
+      .sidebar {
+        position: fixed;
+        z-index: 10;
+        left: -270px;
+        top: 0;
+        bottom: 0;
+        transition: left .25s;
+        box-shadow: 5px 0 25px rgba(0,0,0,.06);
+      }
+
+      .sidebar.open { left: 0; }
+
+      .mobile-menu { display: block; }
+
+      .topbar { padding: 0 20px; }
+
+      .content { padding: 25px 20px; }
+    }
+
+    @media(max-width: 580px) {
+      .grid { grid-template-columns: 1fr; }
+      .welcome h1 { font-size: 25px; }
+      .auth-card { padding: 27px 22px; }
+      .topbar-label { display: none; }
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="logo">Entre <span>Nós.</span></div>
-    <button id="logoutButton" class="logout hidden">Sair da conta</button>
-  </header>
-
-  <main id="authArea">
-    <section class="hero">
-      <div class="eyebrow">Família · Relações · Vínculos</div>
-      <h1>Relacionamentos também precisam de cuidado.</h1>
-      <p>
-        Um espaço para olhar com mais atenção para as relações que
-        fazem parte da nossa história, compreender os vínculos e
-        construir conexões mais saudáveis.
+  <!-- LOGIN E CADASTRO -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="brand">Entre Nós<span>.</span></div>
+      <p class="auth-subtitle">
+        Um espaço para compreender, cuidar e desenvolver seus relacionamentos.
       </p>
-    </section>
 
-    <section class="panel">
-      <div id="loginForm">
-        <h2>Que bom ter você aqui.</h2>
-        <p class="subtitle">Entre na sua conta para continuar sua jornada.</p>
-
-        <form id="login">
+      <form id="loginForm">
+        <div class="field">
           <label for="loginEmail">E-mail</label>
-          <input id="loginEmail" type="email" autocomplete="email" required>
-
+          <input id="loginEmail" type="email" required autocomplete="email">
+        </div>
+        <div class="field">
           <label for="loginPassword">Senha</label>
-          <input id="loginPassword" type="password" autocomplete="current-password" required>
-
-          <button class="primary" type="submit">Entrar</button>
-        </form>
-
-        <div class="switch">
-          Ainda não tem uma conta?
-          <button type="button" id="showSignup">Criar minha conta</button>
+          <input id="loginPassword" type="password" required autocomplete="current-password">
         </div>
-      </div>
+        <button class="primary-btn" type="submit">Entrar na plataforma</button>
+      </form>
 
-      <div id="signupForm" class="hidden">
-        <h2>Vamos começar?</h2>
-        <p class="subtitle">Crie sua conta para fazer parte do Entre Nós.</p>
-
-        <form id="signup">
-          <label for="fullName">Seu nome</label>
-          <input id="fullName" type="text" autocomplete="name" required>
-
+      <form id="signupForm" class="hidden">
+        <div class="field">
+          <label for="fullName">Nome completo</label>
+          <input id="fullName" type="text" required autocomplete="name">
+        </div>
+        <div class="field">
           <label for="signupEmail">E-mail</label>
-          <input id="signupEmail" type="email" autocomplete="email" required>
-
-          <label for="signupPassword">Crie uma senha</label>
-          <input id="signupPassword" type="password" minlength="8"
-                 autocomplete="new-password" required>
-
-          <button class="primary" type="submit">Criar minha conta</button>
-        </form>
-
-        <div class="switch">
-          Já tem uma conta?
-          <button type="button" id="showLogin">Fazer login</button>
+          <input id="signupEmail" type="email" required autocomplete="email">
         </div>
+        <div class="field">
+          <label for="signupPassword">Crie uma senha</label>
+          <input id="signupPassword" type="password" minlength="6" required autocomplete="new-password">
+        </div>
+        <button class="primary-btn" type="submit">Criar minha conta</button>
+      </form>
+
+      <div class="auth-switch">
+        <span id="switchText">Ainda não tem uma conta?</span>
+        <button id="switchAuth" type="button">Criar conta</button>
       </div>
 
-      <div id="feedback" class="message"></div>
-    </section>
-  </main>
+      <div id="authMessage" class="message" role="status"></div>
+    </div>
+  </section>
 
-  <main id="dashboardArea" class="hidden">
-    <section class="dashboard">
-      <h2 id="welcomeTitle">Bem-vindo(a) ao Entre Nós.</h2>
-      <p class="welcome-text">
-        Este é o seu espaço de reflexão e cuidado com os relacionamentos.
-        Estamos construindo novas ferramentas para ajudar você nessa jornada.
-      </p>
+  <!-- APLICAÇÃO -->
+  <div id="appScreen" class="app-layout hidden">
 
-      <div class="feature">
-        <h3>Termômetro do Relacionamento</h3>
-        <p>
-          Uma ferramenta de reflexão sobre diferentes dimensões da vida a dois.
-          Em breve, você poderá realizar seu primeiro check-in por aqui.
-        </p>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand">Entre Nós<span>.</span></div>
+        <small>Relacionamentos com propósito</small>
       </div>
 
-      <div class="feature">
-        <h3>Nossa proposta</h3>
-        <p>
-          Relações saudáveis não são relações sem dificuldades.
-          São relações nas quais existe espaço para diálogo,
-          compreensão, responsabilidade e cuidado.
-        </p>
+      <div class="menu-label">Principal</div>
+
+      <button class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">⌂</span> Painel inicial
+      </button>
+      <button class="nav-item" data-page="relationship">
+        <span class="nav-icon">♡</span> Meu relacionamento
+      </button>
+
+      <div class="menu-label">Ferramentas</div>
+
+      <button class="nav-item" data-page="thermometers">
+        <span class="nav-icon">◉</span> Termômetros
+      </button>
+      <button class="nav-item" data-page="attachment">
+        <span class="nav-icon">◎</span> Estilos de apego
+      </button>
+      <button class="nav-item" data-page="conversations">
+        <span class="nav-icon">☷</span> Conversas guiadas
+      </button>
+      <button class="nav-item" data-page="spreadsheets">
+        <span class="nav-icon">▦</span> Planilhas
+      </button>
+
+      <div class="menu-label">Desenvolvimento</div>
+
+      <button class="nav-item" data-page="library">
+        <span class="nav-icon">▤</span> Biblioteca
+      </button>
+      <button class="nav-item" data-page="routines">
+        <span class="nav-icon">◷</span> Rotinas e atividades
+      </button>
+      <button class="nav-item" data-page="evolution">
+        <span class="nav-icon">↗</span> Evolução
+      </button>
+
+      <div class="menu-label">Conta</div>
+
+      <button class="nav-item" data-page="account">
+        <span class="nav-icon">⚙</span> Minha conta
+      </button>
+
+      <div class="sidebar-bottom">
+        <div class="user-mini">
+          <div class="avatar" id="userAvatar">U</div>
+          <div>
+            <strong id="sidebarUserName">Usuário</strong>
+            <small>Conta gratuita</small>
+          </div>
+        </div>
+        <button id="logoutButton" class="logout-btn">↪ Sair da conta</button>
       </div>
-    </section>
-  </main>
+    </aside>
 
-  <footer>
-    Entre Nós © 2026 · Um espaço para relações que importam.
-  </footer>
+    <main class="main-area">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:14px">
+          <button id="mobileMenu" class="mobile-menu" aria-label="Abrir menu">☰</button>
+          <span class="topbar-label">Seu espaço de desenvolvimento relacional</span>
+        </div>
+        <div class="topbar-right">ENTRE NÓS</div>
+      </header>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <div class="content">
+
+        <!-- PAINEL -->
+        <section id="page-dashboard" class="page active">
+          <div class="welcome">
+            <h1 id="welcomeName">Bem-vindo(a)!</h1>
+            <p>Este é o seu espaço de reflexão e cuidado com os relacionamentos.</p>
+          </div>
+
+          <div class="welcome-banner">
+            <h2>Relacionamentos também precisam de cuidado.</h2>
+            <p>
+              Um espaço para olhar com atenção para os vínculos que fazem parte
+              da sua vida, compreender padrões e construir relações mais conscientes.
+            </p>
+          </div>
+
+          <h2 class="section-heading">Seu espaço</h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="card-icon">◉</div>
+              <h3>Termômetro do Relacionamento</h3>
+              <p>
+                Uma ferramenta de reflexão sobre comunicação, afeto, confiança,
+                intimidade e outras dimensões da vida a dois.
+              </p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">♡</div>
+              <h3>Meu relacionamento</h3>
+              <p>
+                Conecte sua conta à do parceiro e prepare seu espaço de
+                desenvolvimento compartilhado.
+              </p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">▤</div>
+              <h3>Biblioteca</h3>
+              <p>
+                Artigos, materiais e conteúdos educativos para compreender
+                melhor os relacionamentos.
+              </p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">↗</div>
+              <h3>Sua evolução</h3>
+              <p>
+                Acompanhe resultados, reflexões e mudanças ao longo do tempo.
+              </p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+          </div>
+
+          <div class="info-box">
+            Relações saudáveis não são relações sem dificuldades. São relações
+            nas quais existe espaço para diálogo, compreensão, responsabilidade
+            e cuidado.
+          </div>
+        </section>
+
+        <!-- MEU RELACIONAMENTO -->
+        <section id="page-relationship" class="page">
+          <h1 class="page-title">Meu relacionamento</h1>
+          <p class="page-description">
+            Este será o espaço para conectar sua conta à do parceiro,
+            escolher a fase do relacionamento e organizar experiências compartilhadas.
+          </p>
+          <div class="card">
+            <div class="card-icon">♡</div>
+            <h3>Conexão entre parceiros</h3>
+            <p>
+              A estrutura de convites e conexão já foi preparada no banco de dados.
+              Agora vamos construir a interface para utilizar esses recursos.
+            </p>
+            <span class="status">Interface em desenvolvimento</span>
+          </div>
+        </section>
+
+        <!-- TERMÔMETROS -->
+        <section id="page-thermometers" class="page">
+          <h1 class="page-title">Termômetros</h1>
+          <p class="page-description">
+            Instrumentos de reflexão sobre diferentes dimensões dos relacionamentos.
+            O acesso básico será oferecido a todas as fases: namoro, noivado e casamento.
+          </p>
+          <div class="grid">
+            <div class="card">
+              <div class="card-icon">◉</div>
+              <h3>Termômetro geral</h3>
+              <p>Comunicação, afeto, confiança, intimidade, tempo de qualidade e outras dimensões.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+            <div class="card">
+              <div class="card-icon">◎</div>
+              <h3>Avaliações aprofundadas</h3>
+              <p>Experiências ampliadas e análises adicionais para assinantes Premium.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- APEGO -->
+        <section id="page-attachment" class="page">
+          <h1 class="page-title">Estilos de apego</h1>
+          <p class="page-description">
+            Um espaço educativo para compreender padrões de vínculo e suas
+            possíveis influências nos relacionamentos.
+          </p>
+          <div class="grid">
+            <div class="card">
+              <h3>Apego seguro</h3>
+              <p>Segurança, confiança e disponibilidade emocional.</p>
+            </div>
+            <div class="card">
+              <h3>Apego ansioso</h3>
+              <p>Busca elevada por proximidade e segurança no vínculo.</p>
+            </div>
+            <div class="card">
+              <h3>Apego evitativo</h3>
+              <p>Maior tendência à autonomia e ao distanciamento emocional.</p>
+            </div>
+            <div class="card">
+              <h3>Apego temeroso-evitativo</h3>
+              <p>Possíveis movimentos entre desejo de proximidade e receio de intimidade.</p>
+            </div>
+          </div>
+          <div class="info-box">
+            Os conteúdos e instrumentos deste módulo serão educativos,
+            fundamentados e revisados profissionalmente. Não serão diagnósticos.
+          </div>
+        </section>
+
+        <!-- CONVERSAS -->
+        <section id="page-conversations" class="page">
+          <h1 class="page-title">Conversas guiadas</h1>
+          <p class="page-description">
+            Roteiros de conversa para abordar assuntos importantes com mais
+            clareza, respeito e intencionalidade.
+          </p>
+          <div class="card">
+            <h3>Biblioteca de conversas</h3>
+            <p>Comunicação, expectativas, confiança, intimidade, finanças e projetos de vida.</p>
+            <span class="status">Em desenvolvimento</span>
+          </div>
+        </section>
+
+        <!-- PLANILHAS -->
+        <section id="page-spreadsheets" class="page">
+          <h1 class="page-title">Planilhas</h1>
+          <p class="page-description">
+            Ferramentas compartilhadas para organizar a vida prática e os
+            projetos em comum.
+          </p>
+          <div class="grid">
+            <div class="card">
+              <h3>Organização financeira</h3>
+              <p>Orçamento, receitas, despesas e metas.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+            <div class="card">
+              <h3>Organização doméstica</h3>
+              <p>Tarefas, responsabilidades e rotinas.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+            <div class="card">
+              <h3>Planejamento do casamento</h3>
+              <p>Orçamento, fornecedores, convidados e cronograma.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+            <div class="card">
+              <h3>Projetos em comum</h3>
+              <p>Objetivos, prazos e acompanhamento.</p>
+              <span class="status">Em desenvolvimento</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- BIBLIOTECA -->
+        <section id="page-library" class="page">
+          <h1 class="page-title">Biblioteca</h1>
+          <p class="page-description">
+            Conteúdos educativos organizados por temas e fases do relacionamento.
+          </p>
+          <div class="card">
+            <h3>Conhecimento e reflexão</h3>
+            <p>Artigos, guias, exercícios, vídeos e materiais de leitura.</p>
+            <span class="status">Em desenvolvimento</span>
+          </div>
+        </section>
+
+        <!-- ROTINAS -->
+        <section id="page-routines" class="page">
+          <h1 class="page-title">Rotinas e atividades</h1>
+          <p class="page-description">
+            Pequenas práticas e atividades para cultivar presença,
+            conexão e cuidado no cotidiano.
+          </p>
+          <div class="card">
+            <h3>Atividades para o relacionamento</h3>
+            <p>Momentos de conversa, exercícios de conexão e objetivos compartilhados.</p>
+            <span class="status">Em desenvolvimento</span>
+          </div>
+        </section>
+
+        <!-- EVOLUÇÃO -->
+        <section id="page-evolution" class="page">
+          <h1 class="page-title">Evolução</h1>
+          <p class="page-description">
+            Um espaço para acompanhar resultados e mudanças ao longo do tempo.
+          </p>
+          <div class="card">
+            <h3>Histórico e resultados</h3>
+            <p>Gráficos, avaliações anteriores e evolução das dimensões relacionais.</p>
+            <span class="status">Em desenvolvimento</span>
+          </div>
+        </section>
+
+        <!-- CONTA -->
+        <section id="page-account" class="page">
+          <h1 class="page-title">Minha conta</h1>
+          <p class="page-description">
+            Informações da sua conta e preferências de utilização.
+          </p>
+          <div class="card">
+            <h3>Dados do usuário</h3>
+            <p id="accountName">Nome: —</p>
+            <p id="accountEmail" style="margin-top:8px">E-mail: —</p>
+          </div>
+        </section>
+
+        <div class="footer-note">
+          Entre Nós · Um espaço para cuidar dos relacionamentos.
+        </div>
+
+      </div>
+    </main>
+  </div>
 
   <script>
+    // CONEXÃO COM O SUPABASE EXISTENTE
     const SUPABASE_URL = "https://uwhemwwstrhezoojfbbb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_buEe4MM7QA1HKj4okEcYKQ_H-7oF6rq";
 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const authArea = document.getElementById("authArea");
-    const dashboardArea = document.getElementById("dashboardArea");
-    const logoutButton = document.getElementById("logoutButton");
-    const feedback = document.getElementById("feedback");
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("appScreen");
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const authMessage = document.getElementById("authMessage");
 
-    function showMessage(message, type) {
-      feedback.textContent = message;
-      feedback.className = "message " + type;
-      feedback.style.display = "block";
+    let showingSignup = false;
+
+    function showMessage(message, isError = false) {
+      authMessage.textContent = message;
+      authMessage.style.color = isError ? "#a34d43" : "#315b59";
     }
 
-    function clearMessage() {
-      feedback.textContent = "";
-      feedback.style.display = "none";
+    function toggleAuth() {
+      showingSignup = !showingSignup;
+      loginForm.classList.toggle("hidden", showingSignup);
+      signupForm.classList.toggle("hidden", !showingSignup);
+
+      document.getElementById("switchText").textContent =
+        showingSignup ? "Já tem uma conta?" : "Ainda não tem uma conta?";
+
+      document.getElementById("switchAuth").textContent =
+        showingSignup ? "Entrar" : "Criar conta";
+
+      showMessage("");
     }
 
-    function showDashboard(user) {
-      authArea.classList.add("hidden");
-      dashboardArea.classList.remove("hidden");
-      logoutButton.classList.remove("hidden");
+    document.getElementById("switchAuth").addEventListener("click", toggleAuth);
 
-      const name = user.user_metadata?.full_name;
-      document.getElementById("welcomeTitle").textContent =
-        name ? "Bem-vindo(a), " + name + "!" : "Bem-vindo(a) ao Entre Nós.";
-    }
-
-    function showLogin() {
-      dashboardArea.classList.add("hidden");
-      authArea.classList.remove("hidden");
-      logoutButton.classList.add("hidden");
-      document.getElementById("loginForm").classList.remove("hidden");
-      document.getElementById("signupForm").classList.add("hidden");
-      clearMessage();
-    }
-
-    document.getElementById("showSignup").addEventListener("click", () => {
-      document.getElementById("loginForm").classList.add("hidden");
-      document.getElementById("signupForm").classList.remove("hidden");
-      clearMessage();
-    });
-
-    document.getElementById("showLogin").addEventListener("click", showLogin);
-
-    document.getElementById("signup").addEventListener("submit", async (event) => {
+    signupForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-
-      const button = event.submitter;
-      button.disabled = true;
-      button.textContent = "Criando sua conta...";
+      showMessage("Criando sua conta...");
 
       const fullName = document.getElementById("fullName").value.trim();
       const email = document.getElementById("signupEmail").value.trim();
@@ -368,82 +864,129 @@
         email,
         password,
         options: {
-          data: { full_name: fullName }
+          data: { full_name: fullName },
+          emailRedirectTo: window.location.origin + window.location.pathname
         }
       });
 
-      button.disabled = false;
-      button.textContent = "Criar minha conta";
-
       if (error) {
-        showMessage(error.message, "error");
+        showMessage(error.message, true);
         return;
       }
 
       if (data.session) {
-        showDashboard(data.user);
+        showMessage("Conta criada com sucesso!");
       } else {
-        showMessage(
-          "Conta criada! Verifique sua caixa de entrada e confirme seu e-mail antes de entrar.",
-          "success"
-        );
+        showMessage("Conta criada! Confira seu e-mail para confirmar o cadastro.");
       }
     });
 
-    document.getElementById("login").addEventListener("submit", async (event) => {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-
-      const button = event.submitter;
-      button.disabled = true;
-      button.textContent = "Entrando...";
+      showMessage("Entrando...");
 
       const email = document.getElementById("loginEmail").value.trim();
       const password = document.getElementById("loginPassword").value;
 
-      const { data, error } = await client.auth.signInWithPassword({
+      const { error } = await client.auth.signInWithPassword({
         email,
         password
       });
 
-      button.disabled = false;
-      button.textContent = "Entrar";
-
       if (error) {
-        showMessage("Não foi possível entrar. Confira seu e-mail e senha.", "error");
-        return;
+        showMessage(error.message, true);
       }
-
-      showDashboard(data.user);
     });
 
-    logoutButton.addEventListener("click", async () => {
+    async function loadUser(user) {
+      if (!user) return;
+
+      let name = user.user_metadata?.full_name || "Usuário";
+
+      const { data: profile } = await client
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.full_name) {
+        name = profile.full_name;
+      }
+
+      document.getElementById("welcomeName").textContent = "Bem-vindo(a), " + name + "!";
+      document.getElementById("sidebarUserName").textContent = name;
+      document.getElementById("userAvatar").textContent =
+        name.trim().charAt(0).toUpperCase();
+      document.getElementById("accountName").textContent = "Nome: " + name;
+      document.getElementById("accountEmail").textContent = "E-mail: " + user.email;
+
+      authScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+    }
+
+    function showLoggedOut() {
+      appScreen.classList.add("hidden");
+      authScreen.classList.remove("hidden");
+    }
+
+    document.getElementById("logoutButton").addEventListener("click", async () => {
       const { error } = await client.auth.signOut();
+
       if (error) {
-        alert("Não foi possível sair da conta. Tente novamente.");
-        return;
+        alert("Não foi possível sair da conta: " + error.message);
       }
-      showLogin();
     });
 
+    // NAVEGAÇÃO ENTRE AS PÁGINAS
+    const navItems = document.querySelectorAll(".nav-item");
+    const pages = document.querySelectorAll(".page");
+
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const pageName = item.dataset.page;
+
+        navItems.forEach((nav) => nav.classList.remove("active"));
+        item.classList.add("active");
+
+        pages.forEach((page) => page.classList.remove("active"));
+
+        const selectedPage = document.getElementById("page-" + pageName);
+        if (selectedPage) selectedPage.classList.add("active");
+
+        document.getElementById("sidebar").classList.remove("open");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    document.getElementById("mobileMenu").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.toggle("open");
+    });
+
+    // VERIFICAÇÃO DA SESSÃO
     client.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        showDashboard(session.user);
+        loadUser(session.user);
       } else {
-        showLogin();
+        showLoggedOut();
       }
     });
 
-    client.auth.getSession().then(({ data, error }) => {
+    async function initializeApp() {
+      const { data, error } = await client.auth.getSession();
+
       if (error) {
-        showLogin();
+        showMessage("Não foi possível verificar sua sessão.", true);
         return;
       }
+
       if (data.session?.user) {
-        showDashboard(data.session.user);
+        await loadUser(data.session.user);
       } else {
-        showLogin();
+        showLoggedOut();
       }
-    });
+    }
+
+    initializeApp();
   </script>
 
 </body>
