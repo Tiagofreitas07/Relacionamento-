@@ -1601,6 +1601,36 @@ deleteButton.addEventListener("click", async () => {
   await loadQuestions();
 });
 
+const publishButton = document.createElement("button");
+publishButton.textContent = question.is_active ? "Desativar" : "Publicar";
+publishButton.type = "button";
+item.appendChild(publishButton);
+
+publishButton.addEventListener("click", async () => {
+  const action = question.is_active ? "desativar" : "publicar";
+
+  if (!confirm(`Deseja realmente ${action} esta pergunta?`)) return;
+
+  const { data, error } = await client
+    .from("relationship_questions")
+    .update({ is_active: !question.is_active })
+    .eq("id", question.id)
+    .select("id, is_active");
+
+  if (error) {
+    alert("Erro ao alterar pergunta: " + error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    alert("A alteração não foi confirmada no banco de dados.");
+    return;
+  }
+
+  alert(question.is_active ? "Pergunta desativada!" : "Pergunta publicada!");
+  await loadQuestions();
+});
+
   });
 }
 
