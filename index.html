@@ -1151,7 +1151,15 @@ document.getElementById("acceptInviteButton").addEventListener("click", async ()
 
     async function loadUser(user) {
       if (!user) return;
+// Verificar permissão administrativa
+const { data: isAdmin, error: adminError } =
+  await client.rpc("is_admin");
 
+if (adminError) {
+  console.error("Erro ao verificar administrador:", adminError);
+} else {
+  console.log("Administrador:", isAdmin);
+}
       let name = user.user_metadata?.full_name || "Usuário";
 
       const { data: profile, error } = await client
