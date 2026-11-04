@@ -1172,6 +1172,37 @@ document.getElementById("acceptInviteButton").addEventListener("click", async ()
 
       currentRelationshipPhase = profile?.relationship_phase || null;
 
+const connectedArea = document.getElementById("coupleConnectedArea");
+const inviteArea = document.getElementById("coupleInviteArea");
+
+const { data: membership, error: membershipError } = await client
+  .from("couple_members")
+  .select("couple_id")
+  .eq("user_id", user.id)
+  .maybeSingle();
+
+if (membershipError) {
+  console.error("Erro ao verificar conexão:", membershipError);
+} else if (membership) {
+  const { data: members, error: membersError } = await client
+    .from("couple_members")
+    .select("user_id")
+    .eq("couple_id", membership.couple_id);
+
+  if (membersError) {
+    console.error("Erro ao carregar integrantes:", membersError);
+  } else if (members && members.length === 2) {
+    connectedArea.classList.remove("hidden");
+    inviteArea.classList.add("hidden");
+  } else {
+    connectedArea.classList.add("hidden");
+    inviteArea.classList.remove("hidden");
+  }
+} else {
+  connectedArea.classList.add("hidden");
+  inviteArea.classList.remove("hidden");
+}
+
       document.getElementById("welcomeName").textContent =
         "Bem-vindo(a), " + name + "!";
       document.getElementById("sidebarUserName").textContent = name;
