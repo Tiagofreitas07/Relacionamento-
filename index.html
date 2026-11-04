@@ -1728,6 +1728,36 @@ document.getElementById("startThermometerButton")
     document.getElementById("thermometerQuestion").textContent =
       question.question_text;
 
+const answersContainer = document.getElementById("thermometerAnswers");
+
+answersContainer.innerHTML = "";
+
+const answerOptions = [
+  "Discordo totalmente",
+  "Discordo parcialmente",
+  "Nem concordo, nem discordo",
+  "Concordo parcialmente",
+  "Concordo totalmente"
+];
+
+answerOptions.forEach((label, index) => {
+  const option = document.createElement("label");
+  option.style.display = "block";
+  option.style.margin = "12px 0";
+
+  const radio = document.createElement("input");
+  radio.type = "radio";
+  radio.name = "thermometerAnswer";
+  radio.value = index + 1;
+
+  option.appendChild(radio);
+  option.appendChild(
+    document.createTextNode(` ${index + 1} — ${label}`)
+  );
+
+  answersContainer.appendChild(option);
+});
+
     document.getElementById("thermometerProgress").textContent =
       `Pergunta 1 de ${questions.length}`;
 
