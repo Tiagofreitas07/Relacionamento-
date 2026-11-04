@@ -1458,7 +1458,7 @@ document.getElementById("saveQuestionButton").addEventListener("click", async ()
   try {
 
 let error;
-
+console.log("ID da pergunta em edição:", editingQuestionId);
 if (editingQuestionId) {
   const result = await client
     .from("relationship_questions")
