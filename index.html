@@ -1575,6 +1575,32 @@ editButton.addEventListener("click", () => {
   document.getElementById("questionText").focus();
 });
 
+const deleteButton = document.createElement("button");
+deleteButton.textContent = "Excluir";
+deleteButton.type = "button";
+item.appendChild(deleteButton);
+
+deleteButton.addEventListener("click", async () => {
+  const confirmed = confirm(
+    "Tem certeza que deseja excluir esta pergunta?"
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await client
+    .from("relationship_questions")
+    .delete()
+    .eq("id", question.id);
+
+  if (error) {
+    alert("Erro ao excluir: " + error.message);
+    return;
+  }
+
+  alert("Solicitação de exclusão concluída.");
+  await loadQuestions();
+});
+
   });
 }
 
