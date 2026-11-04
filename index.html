@@ -1112,32 +1112,7 @@
 
       if (!currentRelationshipPhase) {
         showPhaseSelector();
-      }
-    }
-
-      let name = user.user_metadata?.full_name || "Usuário";
-
-      const { data: profile } = await client
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profile?.full_name) {
-        name = profile.full_name;
-      }
-
-      document.getElementById("welcomeName").textContent = "Bem-vindo(a), " + name + "!";
-      document.getElementById("sidebarUserName").textContent = name;
-      document.getElementById("userAvatar").textContent =
-        name.trim().charAt(0).toUpperCase();
-      document.getElementById("accountName").textContent = "Nome: " + name;
-      document.getElementById("accountEmail").textContent = "E-mail: " + user.email;
-
-      authScreen.classList.add("hidden");
-      appScreen.classList.remove("hidden");
-    }
-
+        
     function showLoggedOut() {
       appScreen.classList.add("hidden");
       authScreen.classList.remove("hidden");
