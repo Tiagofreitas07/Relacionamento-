@@ -1084,6 +1084,31 @@
       }
     }
 
+document.getElementById("generateInviteButton").addEventListener("click", async () => {
+  const button = document.getElementById("generateInviteButton");
+  const message = document.getElementById("inviteMessage");
+  const area = document.getElementById("generatedInviteArea");
+  const codeElement = document.getElementById("generatedInviteCode");
+
+  button.disabled = true;
+  message.textContent = "Gerando seu convite...";
+
+  try {
+    const { data, error } = await client.rpc("create_couple_invite");
+
+    if (error) throw error;
+
+    codeElement.textContent = data;
+    area.classList.remove("hidden");
+    message.textContent = "Convite gerado com sucesso!";
+  } catch (error) {
+    console.error("Erro ao gerar convite:", error);
+    message.textContent = "Não foi possível gerar o convite: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
     async function loadUser(user) {
       if (!user) return;
 
