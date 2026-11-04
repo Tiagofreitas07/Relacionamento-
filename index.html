@@ -1435,6 +1435,44 @@ document.getElementById("manageThermometersButton").addEventListener("click", ()
   window.scrollTo(0, 0);
 });
 
+ 
+document.getElementById("saveQuestionButton").addEventListener("click", async () => {
+  const button = document.getElementById("saveQuestionButton");
+  const message = document.getElementById("questionMessage");
+  const questionText = document.getElementById("questionText").value.trim();
+  const dimensionId = document.getElementById("questionDimension").value;
+
+  if (!questionText || !dimensionId) {
+    message.textContent = "Preencha a pergunta e selecione uma dimensão.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Salvando pergunta...";
+
+  try {
+    const { error } = await client.from("relationship_questions").insert({
+      question_text: questionText,
+      dimension_id: dimensionId,
+      phase: "todas",
+      weight: 1,
+      is_active: false,
+      review_status: "rascunho_para_revisao_profissional"
+    });
+
+    if (error) throw error;
+
+    message.textContent = "Pergunta cadastrada como rascunho!";
+    document.getElementById("questionText").value = "";
+  } catch (error) {
+    console.error("Erro ao salvar pergunta:", error);
+    message.textContent = "Erro ao salvar: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+  
+    
     // VERIFICAÇÃO DA SESSÃO
     client.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
