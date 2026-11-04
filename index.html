@@ -1109,6 +1109,38 @@ document.getElementById("generateInviteButton").addEventListener("click", async 
   }
 });
 
+document.getElementById("acceptInviteButton").addEventListener("click", async () => {
+  const button = document.getElementById("acceptInviteButton");
+  const input = document.getElementById("partnerInviteCode");
+  const message = document.getElementById("inviteMessage");
+  const code = input.value.trim().toUpperCase();
+
+  if (!code) {
+    message.textContent = "Digite o código de convite recebido.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Conectando vocês...";
+
+  try {
+    const { data, error } = await client.rpc("accept_couple_invite", {
+      p_code: code
+    });
+
+    if (error) throw error;
+
+    message.textContent = data;
+    input.value = "";
+    document.getElementById("generateInviteButton").disabled = true;
+  } catch (error) {
+    console.error("Erro ao aceitar convite:", error);
+    message.textContent = "Não foi possível aceitar o convite: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
     async function loadUser(user) {
       if (!user) return;
 
