@@ -1440,7 +1440,7 @@ document.getElementById("manageThermometersButton").addEventListener("click", ()
   window.scrollTo(0, 0);
 });
 
- 
+ let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
   const button = document.getElementById("saveQuestionButton");
   const message = document.getElementById("questionMessage");
@@ -1456,7 +1456,23 @@ document.getElementById("saveQuestionButton").addEventListener("click", async ()
   message.textContent = "Salvando pergunta...";
 
   try {
-    const { error } = await client.from("relationship_questions").insert({
+
+let error;
+
+if (editingQuestionId) {
+  const result = await client
+    .from("relationship_questions")
+    .update({
+      question_text: questionText,
+      dimension_id: dimensionId
+    })
+    .eq("id", editingQuestionId);
+
+  error = result.error;
+} else {
+  const result = await client
+    .from("relationship_questions")
+    .insert({
       question_text: questionText,
       dimension_id: dimensionId,
       phase: "todas",
@@ -1465,10 +1481,19 @@ document.getElementById("saveQuestionButton").addEventListener("click", async ()
       review_status: "rascunho_para_revisao_profissional"
     });
 
-    if (error) throw error;
+  error = result.error;
+}
 
-    message.textContent = "Pergunta cadastrada como rascunho!";
-    document.getElementById("questionText").value = "";
+if (error) throw error;
+
+message.textContent = editingQuestionId
+  ? "Pergunta atualizada com sucesso!"
+  : "Pergunta cadastrada como rascunho!";
+
+editingQuestionId = null;
+document.getElementById("questionText").value = "";
+await loadQuestions();
+
   } catch (error) {
     console.error("Erro ao salvar pergunta:", error);
     message.textContent = "Erro ao salvar: " + error.message;
@@ -1516,7 +1541,7 @@ console.log("Usuário da listagem:", authData.user?.email);
 
 const { data, error } = await client
   .from("relationship_questions")
-  .select("id, question_text, is_active")
+.select("id, question_text, dimension_id, is_active")
   .order("created_at", { ascending: false });
 
   if (error) {
@@ -1544,6 +1569,8 @@ editButton.type = "button";
 item.appendChild(editButton); 
     
 editButton.addEventListener("click", () => {
+ editingQuestionId = question.id;
+  document.getElementById("questionDimension").value = question.dimension_id;
   document.getElementById("questionText").value = question.question_text;
   document.getElementById("questionText").focus();
 });
