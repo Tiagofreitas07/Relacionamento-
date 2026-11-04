@@ -1510,10 +1510,14 @@ async function loadQuestions() {
 
   list.textContent = "Carregando perguntas...";
 
-  const { data, error } = await client
-    .from("relationship_questions")
-    .select("question_text, is_active")
-    .order("created_at", { ascending: false });
+  
+const { data: authData } = await client.auth.getUser();
+console.log("Usuário da listagem:", authData.user?.email);
+
+const { data, error } = await client
+  .from("relationship_questions")
+  .select("question_text, is_active")
+  .order("created_at", { ascending: false });
 
   if (error) {
     list.textContent = "Erro ao carregar perguntas.";
