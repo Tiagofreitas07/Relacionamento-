@@ -1546,23 +1546,24 @@ async function loadQuestions() {
       }
     });
 
-    async function initializeApp() {
+
+async function initializeApp() {
   await loadQuestionDimensions();
-        await loadQuestions();
 
   const { data, error } = await client.auth.getSession();
 
-      if (error) {
-        showMessage("Não foi possível verificar sua sessão.", true);
-        return;
-      }
+  if (error) {
+    showMessage("Não foi possível verificar sua sessão.", true);
+    return;
+  }
 
-      if (data.session?.user) {
-        await loadUser(data.session.user);
-      } else {
-        showLoggedOut();
-      }
-    }
+  if (data.session?.user) {
+    await loadUser(data.session.user);
+    await loadQuestions();
+  } else {
+    showLoggedOut();
+  }
+}
 
     initializeApp();
   </script>
