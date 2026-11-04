@@ -1665,5 +1665,45 @@ async function initializeApp() {
     initializeApp();
   </script>
 
+<section id="thermometerScreen" style="display:none; padding:24px; max-width:650px; margin:auto;">
+  <h2>Termômetro do Relacionamento</h2>
+
+  <p>
+    Um espaço para refletir sobre diferentes
+    aspectos do seu relacionamento.
+  </p>
+
+  <div id="thermometerStart">
+    <button type="button" id="startThermometerButton">
+      Iniciar avaliação
+    </button>
+  </div>
+
+  <div id="thermometerQuestions" style="display:none;">
+    <h3 id="thermometerDimension"></h3>
+
+    <p id="thermometerQuestion"></p>
+
+    <div id="thermometerAnswers"></div>
+
+    <p id="thermometerProgress"></p>
+
+    <progress id="thermometerProgressBar"
+              value="0" max="100"
+              style="width:100%;">
+    </progress>
+
+    <button type="button" id="thermometerNextButton">
+      Próxima pergunta
+    </button>
+  </div>
+
+  <div id="thermometerResult" style="display:none;">
+    <h3>Seu resultado</h3>
+    <p id="thermometerScore"></p>
+    <p id="thermometerCategory"></p>
+  </div>
+</section>
+
 </body>
 </html>
