@@ -1106,13 +1106,14 @@
       }
 
       updatePhaseDisplay();
-
       authScreen.classList.add("hidden");
       appScreen.classList.remove("hidden");
 
       if (!currentRelationshipPhase) {
         showPhaseSelector();
-        
+      }
+    }
+
     function showLoggedOut() {
       appScreen.classList.add("hidden");
       authScreen.classList.remove("hidden");
