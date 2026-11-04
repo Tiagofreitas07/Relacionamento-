@@ -1765,6 +1765,56 @@ answerOptions.forEach((label, index) => {
       100 / questions.length;
   });
 
+document.getElementById("thermometerNextButton")
+  .addEventListener("click", () => {
+
+    const selected = document.querySelector(
+      'input[name="thermometerAnswer"]:checked'
+    );
+
+    if (!selected) {
+      alert("Selecione uma resposta antes de continuar.");
+      return;
+    }
+
+    if (!window.thermometerAnswers) {
+      window.thermometerAnswers = {};
+    }
+
+    const index = window.thermometerCurrentIndex;
+    const questions = window.thermometerQuestions;
+
+    window.thermometerAnswers[questions[index].id] =
+      Number(selected.value);
+
+    const nextIndex = index + 1;
+
+    if (nextIndex >= questions.length) {
+      document.getElementById("thermometerQuestions").style.display = "none";
+      alert("Você respondeu todas as perguntas! O salvamento será implementado na próxima etapa.");
+      return;
+    }
+
+    window.thermometerCurrentIndex = nextIndex;
+
+    const question = questions[nextIndex];
+
+    document.getElementById("thermometerQuestion").textContent =
+      question.question_text;
+
+    document.getElementById("thermometerProgress").textContent =
+      `Pergunta ${nextIndex + 1} de ${questions.length}`;
+
+    document.getElementById("thermometerProgressBar").value =
+      ((nextIndex + 1) / questions.length) * 100;
+
+    document.querySelectorAll(
+      'input[name="thermometerAnswer"]'
+    ).forEach(radio => {
+      radio.checked = false;
+    });
+  });
+
     initializeApp();
   </script>
 
