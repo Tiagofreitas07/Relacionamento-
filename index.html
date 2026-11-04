@@ -1834,34 +1834,67 @@ if (saveError) {
   
   const nextIndex = index + 1;
 
-    if (nextIndex >= questions.length) {
-      document.getElementById("thermometerQuestions").style.display = "none";
 
-const { data: result, error: finishError } = await client.rpc(
-  "finalize_checkin",
-  { p_checkin_id: window.thermometerCheckinId }
-);
+if (nextIndex >= questions.length) {
+  const questionPanel = document.getElementById("thermometerQuestions");
+  const resultPanel = document.getElementById("thermometerResult");
+  const scoreElement = document.getElementById("thermometerScore");
+  const categoryElement = document.getElementById("thermometerCategory");
 
-if (finishError) {
-  alert("Erro ao finalizar avaliação: " + finishError.message);
+  questionPanel.style.display = "none";
+  resultPanel.style.display = "block";
+
+  scoreElement.textContent = "Calculando seu resultado...";
+  categoryElement.textContent = "";
+
+  try {
+    const { data, error } = await client.rpc("finalize_checkin", {
+      p_checkin_id: window.thermometerCheckinId
+    });
+
+    if (error) throw error;
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    const categoryNames = {
+      cuidar_com_atencao: "Precisa de atenção",
+      em_construcao: "Em construção",
+      forte: "Relacionamento fortalecido"
+    };
+
+    const score = Number(result?.overall_score);
+
+    if (result?.overall_score != null && Number.isFinite(score)) {
+      scoreElement.textContent =
+        `Pontuação geral: ${score.toFixed(2)} de 5`;
+
+      categoryElement.textContent = result.category
+        ? `Resultado: ${categoryNames[result.category] || result.category}`
+        : "Avaliação concluída.";
+    } else {
+      scoreElement.textContent = "Avaliação concluída.";
+      categoryElement.textContent =
+        "O servidor não retornou a pontuação. Consulte os dados da avaliação.";
+    }
+
+  } catch (error) {
+    console.error("Erro ao finalizar avaliação:", error);
+
+    scoreElement.textContent =
+      "Não foi possível calcular o resultado.";
+
+    categoryElement.textContent =
+      "Erro ao finalizar: " + error.message;
+  }
+
+  resultPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
   return;
 }
 
-const categoryNames = {
-  cuidar_com_atencao: "Precisa de atenção",
-  em_construcao: "Em construção",
-  forte: "Relacionamento fortalecido"
-};
-
-document.getElementById("thermometerScore").textContent =
-  `Pontuação geral: ${Number(result.overall_score).toFixed(2)} de 5`;
-
-document.getElementById("thermometerCategory").textContent =
-  `Resultado: ${categoryNames[result.category] || result.category}`;
-
-document.getElementById("thermometerResult").style.display = "block";
-
-      return;
     }
 
     window.thermometerCurrentIndex = nextIndex;
