@@ -1717,6 +1717,32 @@ document.getElementById("startThermometerButton")
       return;
     }
 
+   
+const { data: authData } = await client.auth.getUser();
+
+if (!authData.user) {
+  alert("Faça login para iniciar a avaliação.");
+  return;
+}
+
+const { data: cycle, error: cycleError } = await client
+  .from("checkin_cycles")
+  .insert({
+    user_id: authData.user.id,
+    phase: "todas",
+    share_with_partner: false
+  })
+  .select("id")
+  .single();
+
+if (cycleError) {
+  alert("Erro ao iniciar avaliação: " + cycleError.message);
+  return;
+}
+
+window.thermometerCheckinId = cycle.id;
+window.thermometerAnswers = {};
+
     window.thermometerQuestions = questions;
     window.thermometerCurrentIndex = 0;
 
