@@ -1693,6 +1693,48 @@ async function initializeApp() {
   }
 }
 
+ 
+document.getElementById("startThermometerButton")
+  .addEventListener("click", async () => {
+
+    const button = document.getElementById("startThermometerButton");
+    button.disabled = true;
+
+    const { data: questions, error } = await client
+      .from("relationship_questions")
+      .select("id, question_text, dimension_id")
+      .eq("is_active", true);
+
+    button.disabled = false;
+
+    if (error) {
+      alert("Erro ao carregar perguntas: " + error.message);
+      return;
+    }
+
+    if (!questions || questions.length === 0) {
+      alert("Ainda não existem perguntas publicadas para esta avaliação.");
+      return;
+    }
+
+    window.thermometerQuestions = questions;
+    window.thermometerCurrentIndex = 0;
+
+    document.getElementById("thermometerQuestions").style.display = "block";
+    document.getElementById("thermometerResult").style.display = "none";
+
+    const question = questions[0];
+
+    document.getElementById("thermometerQuestion").textContent =
+      question.question_text;
+
+    document.getElementById("thermometerProgress").textContent =
+      `Pergunta 1 de ${questions.length}`;
+
+    document.getElementById("thermometerProgressBar").value =
+      100 / questions.length;
+  });
+
     initializeApp();
   </script>
 
