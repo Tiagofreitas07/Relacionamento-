@@ -688,7 +688,35 @@
     <p>
       Aqui você poderá cadastrar, editar e organizar
       as perguntas utilizadas nas avaliações.
-    </p>
+    </p> 
+<div style="margin-top:24px">
+  <h3>Cadastrar nova pergunta</h3>
+
+  <div class="field">
+    <label for="questionText">Texto da pergunta</label>
+    <textarea id="questionText" rows="3"
+      placeholder="Escreva aqui a pergunta"></textarea>
+  </div>
+
+  <div class="field">
+    <label for="questionDimension">Dimensão</label>
+    <select id="questionDimension">
+      <option value="">Selecione uma dimensão</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="questionOrder">Ordem da pergunta</label>
+    <input id="questionOrder" type="number" min="1" value="1">
+  </div>
+
+  <button id="saveQuestionButton" class="primary-btn" type="button">
+    Salvar pergunta
+  </button>
+
+  <div id="questionMessage" class="message" role="status"></div>
+</div>
+
   </div>
 </section>
 
