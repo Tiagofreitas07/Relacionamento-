@@ -1502,7 +1502,41 @@ async function loadQuestionDimensions() {
   });
 }
 
+
     
+async function loadQuestions() {
+  const list = document.getElementById("questionsList");
+  if (!list) return;
+
+  list.textContent = "Carregando perguntas...";
+
+  const { data, error } = await client
+    .from("relationship_questions")
+    .select("question_text, is_active")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    list.textContent = "Erro ao carregar perguntas.";
+    console.error(error);
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (!data.length) {
+    list.textContent = "Nenhuma pergunta cadastrada.";
+    return;
+  }
+
+  data.forEach((question) => {
+    const item = document.createElement("p");
+    item.textContent =
+      question.question_text +
+      (question.is_active ? " — Publicada" : " — Rascunho");
+    list.appendChild(item);
+  });
+}
+
     // VERIFICAÇÃO DA SESSÃO
     client.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
@@ -1514,6 +1548,7 @@ async function loadQuestionDimensions() {
 
     async function initializeApp() {
   await loadQuestionDimensions();
+        await loadQuestions();
 
   const { data, error } = await client.auth.getSession();
 
