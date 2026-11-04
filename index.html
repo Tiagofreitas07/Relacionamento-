@@ -1355,7 +1355,10 @@ if (pageName === "admin") {
         pages.forEach((page) => page.classList.remove("active"));
 
         const selectedPage = document.getElementById("page-" + pageName);
-        if (selectedPage) selectedPage.classList.add("active");
+       if (selectedPage) {
+  selectedPage.classList.remove("hidden");
+  selectedPage.classList.add("active");
+}
 
         document.getElementById("sidebar").classList.remove("open");
         window.scrollTo({ top: 0, behavior: "smooth" });
