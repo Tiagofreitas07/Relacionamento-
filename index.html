@@ -1836,7 +1836,31 @@ if (saveError) {
 
     if (nextIndex >= questions.length) {
       document.getElementById("thermometerQuestions").style.display = "none";
-alert("Todas as respostas foram salvas! Agora vamos preparar seu resultado.");
+
+const { data: result, error: finishError } = await client.rpc(
+  "finalize_checkin",
+  { p_checkin_id: window.thermometerCheckinId }
+);
+
+if (finishError) {
+  alert("Erro ao finalizar avaliação: " + finishError.message);
+  return;
+}
+
+const categoryNames = {
+  cuidar_com_atencao: "Precisa de atenção",
+  em_construcao: "Em construção",
+  forte: "Relacionamento fortalecido"
+};
+
+document.getElementById("thermometerScore").textContent =
+  `Pontuação geral: ${Number(result.overall_score).toFixed(2)} de 5`;
+
+document.getElementById("thermometerCategory").textContent =
+  `Resultado: ${categoryNames[result.category] || result.category}`;
+
+document.getElementById("thermometerResult").style.display = "block";
+
       return;
     }
 
