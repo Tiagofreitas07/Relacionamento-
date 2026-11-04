@@ -1792,7 +1792,7 @@ answerOptions.forEach((label, index) => {
   });
 
 document.getElementById("thermometerNextButton")
-  .addEventListener("click", () => {
+.addEventListener("click", async () => {
 
     const selected = document.querySelector(
       'input[name="thermometerAnswer"]:checked'
@@ -1813,11 +1813,30 @@ document.getElementById("thermometerNextButton")
     window.thermometerAnswers[questions[index].id] =
       Number(selected.value);
 
-    const nextIndex = index + 1;
+  
+const nextButton = document.getElementById("thermometerNextButton");
+nextButton.disabled = true;
+
+const { error: saveError } = await client
+  .from("checkin_responses")
+  .insert({
+    checkin_id: window.thermometerCheckinId,
+    question_id: questions[index].id,
+    answer_value: Number(selected.value)
+  });
+
+nextButton.disabled = false;
+
+if (saveError) {
+  alert("Erro ao salvar resposta: " + saveError.message);
+  return;
+}
+  
+  const nextIndex = index + 1;
 
     if (nextIndex >= questions.length) {
       document.getElementById("thermometerQuestions").style.display = "none";
-      alert("Você respondeu todas as perguntas! O salvamento será implementado na próxima etapa.");
+alert("Todas as respostas foram salvas! Agora vamos preparar seu resultado.");
       return;
     }
 
