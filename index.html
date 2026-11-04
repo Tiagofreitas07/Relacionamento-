@@ -1473,6 +1473,31 @@ document.getElementById("saveQuestionButton").addEventListener("click", async ()
 });
   
     
+    
+async function loadQuestionDimensions() {
+  const select = document.getElementById("questionDimension");
+
+  const { data, error } = await client
+    .from("relationship_dimensions")
+    .select("id, name")
+    .order("name");
+
+  if (error) {
+    console.error("Erro ao carregar dimensões:", error);
+    return;
+  }
+
+  select.innerHTML = '<option value="">Selecione uma dimensão</option>';
+
+  data.forEach((dimension) => {
+    const option = document.createElement("option");
+    option.value = dimension.id;
+    option.textContent = dimension.name;
+    select.appendChild(option);
+  });
+}
+
+    
     // VERIFICAÇÃO DA SESSÃO
     client.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
@@ -1483,7 +1508,9 @@ document.getElementById("saveQuestionButton").addEventListener("click", async ()
     });
 
     async function initializeApp() {
-      const { data, error } = await client.auth.getSession();
+  await loadQuestionDimensions();
+
+  const { data, error } = await client.auth.getSession();
 
       if (error) {
         showMessage("Não foi possível verificar sua sessão.", true);
