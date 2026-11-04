@@ -1395,6 +1395,18 @@ if (pageName === "admin") {
       document.getElementById("sidebar").classList.toggle("open");
     });
 
+document.getElementById("manageThermometersButton").addEventListener("click", () => {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const page = document.getElementById("page-manage-thermometers");
+  page.classList.remove("hidden");
+  page.classList.add("active");
+
+  window.scrollTo(0, 0);
+});
+
     // VERIFICAÇÃO DA SESSÃO
     client.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
