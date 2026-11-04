@@ -517,6 +517,13 @@
         <span class="nav-icon">♡</span> Meu relacionamento
       </button>
 
+<div id="adminMenu" class="hidden">
+  <div class="menu-label">ADMINISTRAÇÃO</div>
+  <button class="nav-item" data-page="admin">
+    <span class="nav-icon">⚙</span> Painel administrativo
+  </button>
+</div>
+
       <div class="menu-label">Ferramentas</div>
 
       <button class="nav-item" data-page="thermometers">
@@ -637,6 +644,27 @@
             e cuidado.
           </div>
         </section>
+
+<!-- PAINEL ADMINISTRATIVO -->
+<section id="page-admin" class="page hidden">
+  <h1 class="page-title">Painel Administrativo</h1>
+  <p class="page-description">
+    Gerencie os recursos e conteúdos da plataforma Entre Nós.
+  </p>
+
+  <div class="card">
+    <h3>Administração da plataforma</h3>
+    <p>
+      Bem-vindo à área administrativa do Entre Nós.
+      Aqui você poderá gerenciar os termômetros,
+      perguntas, conteúdos, usuários e planos.
+    </p>
+    <p>
+      Os recursos administrativos serão habilitados
+      progressivamente, com permissões seguras.
+    </p>
+  </div>
+</section>
 
         <!-- MEU RELACIONAMENTO -->
         <section id="page-relationship" class="page">
@@ -1159,7 +1187,12 @@ if (adminError) {
   console.error("Erro ao verificar administrador:", adminError);
 } else {
   console.log("Administrador:", isAdmin);
+}if (isAdmin === true) {
+  document.getElementById("adminMenu").classList.remove("hidden");
+} else {
+  document.getElementById("adminMenu").classList.add("hidden");
 }
+    }
       let name = user.user_metadata?.full_name || "Usuário";
 
       const { data: profile, error } = await client
@@ -1306,9 +1339,16 @@ if (membershipError) {
     const pages = document.querySelectorAll(".page");
 
     navItems.forEach((item) => {
-      item.addEventListener("click", () => {
+item.addEventListener("click", async () => {
         const pageName = item.dataset.page;
+if (pageName === "admin") {
+  const { data: autorizado, error } = await client.rpc("is_admin");
 
+  if (error || autorizado !== true) {
+    alert("Acesso restrito aos administradores.");
+    return;
+  }
+}
         navItems.forEach((nav) => nav.classList.remove("active"));
         item.classList.add("active");
 
