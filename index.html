@@ -648,11 +648,41 @@
           <div class="card">
             <div class="card-icon">♡</div>
             <h3>Conexão entre parceiros</h3>
-            <p>
-              A estrutura de convites e conexão já foi preparada no banco de dados.
-              Agora vamos construir a interface para utilizar esses recursos.
-            </p>
-            <span class="status">Interface em desenvolvimento</span>
+           
+<p>
+  Convide seu parceiro para construir um espaço compartilhado
+  dentro do Entre Nós.
+</p>
+
+<div class="field" style="margin-top:18px">
+  <button id="generateInviteButton" class="primary-btn" type="button">
+    Gerar código de convite
+  </button>
+</div>
+
+<div id="generatedInviteArea" class="hidden" style="margin-top:18px">
+  <p>Seu código de convite:</p>
+  <strong id="generatedInviteCode"></strong>
+  <button id="copyInviteButton" type="button">
+    Copiar código
+  </button>
+</div>
+
+<div class="field" style="margin-top:24px">
+  <label for="partnerInviteCode">Recebeu um convite?</label>
+  <input
+    id="partnerInviteCode"
+    type="text"
+    placeholder="Digite o código recebido"
+  >
+</div>
+
+<button id="acceptInviteButton" class="primary-btn" type="button">
+  Conectar com meu parceiro
+</button>
+
+<div id="inviteMessage" class="message" role="status"></div>
+
           </div>
 
           <div class="card" style="margin-top:20px">
