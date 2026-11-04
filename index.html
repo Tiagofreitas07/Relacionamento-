@@ -1141,7 +1141,47 @@
     function showLoggedOut() {
       appScreen.classList.add("hidden");
       authScreen.classList.remove("hidden");
-    }
+    } document.getElementById("savePhaseButton").addEventListener("click", async () => {
+  const phase = document.getElementById("relationshipPhase").value;
+  const message = document.getElementById("phaseMessage");
+  const button = document.getElementById("savePhaseButton");
+
+  if (!phase) {
+    message.textContent = "Selecione uma fase antes de continuar.";
+    message.style.color = "#a34d43";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Salvando...";
+
+  const { data: { user }, error: userError } = await client.auth.getUser();
+
+  if (userError || !user) {
+    message.textContent = "Não foi possível identificar sua conta. Entre novamente.";
+    message.style.color = "#a34d43";
+    button.disabled = false;
+    button.textContent = "Salvar minha fase";
+    return;
+  }
+
+  const { error } = await client
+    .from("profiles")
+    .update({ relationship_phase: phase })
+    .eq("id", user.id);
+
+  button.disabled = false;
+  button.textContent = "Salvar minha fase";
+
+  if (error) {
+    message.textContent = "Erro ao salvar: " + error.message;
+    message.style.color = "#a34d43";
+    return;
+  }
+
+  message.textContent = "Sua fase foi salva com sucesso!";
+  message.style.color = "#315b59";
+});
 
     document.getElementById("logoutButton").addEventListener("click", async () => {
       const { error } = await client.auth.signOut();
