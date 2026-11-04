@@ -1516,7 +1516,7 @@ console.log("Usuário da listagem:", authData.user?.email);
 
 const { data, error } = await client
   .from("relationship_questions")
-  .select("question_text, is_active")
+  .select("id, question_text, is_active")
   .order("created_at", { ascending: false });
 
   if (error) {
@@ -1538,6 +1538,16 @@ const { data, error } = await client
       question.question_text +
       (question.is_active ? " — Publicada" : " — Rascunho");
     list.appendChild(item);
+    const editButton = document.createElement("button");
+editButton.textContent = "Editar";
+editButton.type = "button";
+item.appendChild(editButton); 
+    
+editButton.addEventListener("click", () => {
+  document.getElementById("questionText").value = question.question_text;
+  document.getElementById("questionText").focus();
+});
+
   });
 }
 
