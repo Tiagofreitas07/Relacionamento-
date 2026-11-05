@@ -1683,6 +1683,7 @@ manageButton.style.marginTop = "12px";
 const versionsPage = document.getElementById("page-questionnaire-versions");
 versionsPage.classList.remove("hidden");
 versionsPage.classList.add("active");
+        loadQuestionnaireVersions();
 
         });
       item.append(title, description, status, manageButton);
@@ -1694,7 +1695,48 @@ versionsPage.classList.add("active");
     list.textContent = "Não foi possível carregar os questionários.";
   }
 }
-let selectedQuestionnaireId = null;
+
+async function loadQuestionnaireVersions() {
+  const list = document.getElementById("questionnaireVersionsList");
+
+  if (!selectedQuestionnaireId) {
+    list.textContent = "Selecione um questionário.";
+    return;
+  }
+
+  list.textContent = "Carregando versões...";
+
+  const { data, error } = await client
+    .from("assessment_versions")
+    .select("id, version_number, status, created_at")
+    .eq("questionnaire_id", selectedQuestionnaireId)
+    .order("version_number", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    list.textContent = "Erro ao carregar versões.";
+    return;
+  }
+
+  list.replaceChildren();
+
+  if (!data.length) {
+    list.textContent = "Nenhuma versão cadastrada.";
+    return;
+  }
+
+  data.forEach(version => {
+    const item = document.createElement("p");
+    const status = version.status === "draft"
+      ? "Rascunho"
+      : version.status;
+
+    item.textContent = `Versão ${version.version_number} — ${status}`;
+    list.appendChild(item);
+  });
+}
+
+    let selectedQuestionnaireId = null;
     
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
   if (!selectedQuestionnaireId) {
@@ -1730,6 +1772,7 @@ document.getElementById("createQuestionnaireVersionButton").addEventListener("cl
     if (error) throw error;
 
     alert("Versão " + nextVersion + " criada com sucesso!");
+    await loadQuestionnaireVersions();
   } catch (error) {
     console.error(error);
     alert("Não foi possível criar a versão: " + error.message);
