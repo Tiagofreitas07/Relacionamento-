@@ -853,6 +853,14 @@
   <h3>Seu resultado</h3>
   <p id="thermometerScore"></p>
   <p id="thermometerCategory"></p>
+
+  <div id="thermometerDimensions" style="margin-top:24px;">
+    <h3>Resultados por dimensão</h3>
+    <p id="thermometerDimensionsMessage">
+      Carregando resultados detalhados...
+    </p>
+    <div id="thermometerDimensionsList"></div>
+  </div>
 </div>
    
         </section>
@@ -1875,6 +1883,8 @@ if (nextIndex >= questions.length) {
 
     if (result?.overall_score != null && Number.isFinite(score)) {
       scoreElement.textContent =
+
+        
         `Pontuação geral: ${score.toFixed(2)} de 5`;
 
       categoryElement.textContent = result.category
@@ -1886,6 +1896,34 @@ if (nextIndex >= questions.length) {
         "O servidor não retornou a pontuação. Consulte os dados da avaliação.";
     }
 
+    }const dimensionsMessage = document.getElementById("thermometerDimensionsMessage");
+const dimensionsList = document.getElementById("thermometerDimensionsList");
+
+dimensionsMessage.textContent = "Carregando resultados detalhados...";
+dimensionsList.innerHTML = "";
+
+const { data: dimensionResults, error: dimensionsError } = await client
+  .from("checkin_dimension_results")
+  .select("dimension_id, weighted_score")
+  .eq("checkin_id", window.thermometerCheckinId);
+
+if (dimensionsError) {
+  dimensionsMessage.textContent = "Não foi possível carregar os resultados por dimensão.";
+  console.error(dimensionsError);
+} else {
+  dimensionsMessage.textContent = "";
+
+  for (const dimension of dimensionResults || []) {
+    const item = document.createElement("p");
+
+    item.textContent =
+      "Dimensão: " + dimension.dimension_id +
+      " — Pontuação: " +
+      Number(dimension.weighted_score).toFixed(2) + " de 5";
+
+    dimensionsList.appendChild(item);
+  }
+}
   } catch (error) {
     console.error("Erro ao finalizar avaliação:", error);
 
