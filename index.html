@@ -1636,7 +1636,18 @@ async function loadQuestionnaires() {
       const status = document.createElement("p");
       status.textContent = questionnaire.is_active ? "Situação: Ativo" : "Situação: Inativo";
 
-      item.append(title, description, status);
+     
+const manageButton = document.createElement("button");
+manageButton.type = "button";
+manageButton.className = "primary-btn";
+manageButton.textContent = "Gerenciar";
+manageButton.style.marginTop = "12px";
+
+manageButton.addEventListener("click", () => {
+  alert("Gerenciamento de " + questionnaire.title + " será configurado na próxima etapa.");
+});
+
+      item.append(title, description, status, manageButton);
       list.appendChild(item);
     });
 
