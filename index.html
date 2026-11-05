@@ -1554,6 +1554,43 @@ document.getElementById("manageQuestionnairesButton").addEventListener("click", 
   window.scrollTo(0, 0);
 });
 
+document.getElementById("createQuestionnaireButton").addEventListener("click", async () => {
+  const button = document.getElementById("createQuestionnaireButton");
+  const message = document.getElementById("createQuestionnaireMessage");
+  const title = document.getElementById("newQuestionnaireTitle").value.trim();
+  const description = document.getElementById("newQuestionnaireDescription").value.trim();
+
+  if (!title) {
+    message.textContent = "Informe o nome do questionário.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Criando questionário...";
+
+  try {
+    const { error } = await client
+      .from("assessment_questionnaires")
+      .insert({
+        title: title,
+        description: description,
+        is_active: false
+      });
+
+    if (error) throw error;
+
+    message.textContent = "Questionário criado com sucesso!";
+    document.getElementById("newQuestionnaireTitle").value = "";
+    document.getElementById("newQuestionnaireDescription").value = "";
+
+  } catch (error) {
+    console.error("Erro ao criar questionário:", error);
+    message.textContent = "Não foi possível criar o questionário: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
   const button = document.getElementById("saveQuestionButton");
