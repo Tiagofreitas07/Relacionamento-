@@ -1664,7 +1664,14 @@ manageButton.textContent = "Gerenciar";
 manageButton.style.marginTop = "12px";
 
 manageButton.addEventListener("click", () => {
-  alert("Gerenciamento de " + questionnaire.title + " será configurado na próxima etapa.");
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.add("hidden");
+  });
+
+  document.getElementById("selectedQuestionnaireName").textContent =
+    questionnaire.title;
+
+  document.getElementById("page-questionnaire-versions").classList.remove("hidden");
 });
 
       item.append(title, description, status, manageButton);
