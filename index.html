@@ -1732,6 +1732,17 @@ async function loadQuestionnaireVersions() {
       : version.status;
 
     item.textContent = `Versão ${version.version_number} — ${status}`;
+    const manageVersionButton = document.createElement("button");
+manageVersionButton.type = "button";
+manageVersionButton.className = "primary-btn";
+manageVersionButton.textContent = "Gerenciar";
+manageVersionButton.style.marginLeft = "12px";
+
+manageVersionButton.addEventListener("click", () => {
+  alert("Gerenciar versão " + version.version_number);
+});
+
+item.appendChild(manageVersionButton);
     list.appendChild(item);
   });
 }
