@@ -1926,18 +1926,38 @@ for (const d of dimensionNames || []) {
   namesById[d.id] = d.name;
 }
 
+ 
   for (const dimension of dimensionResults || []) {
-    const item = document.createElement("p");
+    const item = document.createElement("div");
+    item.style.marginBottom = "18px";
 
-    item.textContent =
+    const name = namesById[dimension.dimension_id] || dimension.dimension_id;
+    const score = Number(dimension.weighted_score);
+    const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(5, score)) : 0;
 
-"Dimensão: " + (namesById[dimension.dimension_id] || dimension.dimension_id) +
+    const label = document.createElement("p");
+    label.textContent = name + " — " + score.toFixed(2) + " de 5";
+    label.style.marginBottom = "6px";
+    label.style.fontWeight = "600";
 
-      " — Pontuação: " +
-      Number(dimension.weighted_score).toFixed(2) + " de 5";
+    const track = document.createElement("div");
+    track.style.height = "12px";
+    track.style.backgroundColor = "#e5e7eb";
+    track.style.borderRadius = "8px";
+    track.style.overflow = "hidden";
 
+    const bar = document.createElement("div");
+    bar.style.height = "100%";
+    bar.style.width = (safeScore / 5 * 100) + "%";
+    bar.style.backgroundColor = "#2563eb";
+    bar.style.borderRadius = "8px";
+
+    track.appendChild(bar);
+    item.appendChild(label);
+    item.appendChild(track);
     dimensionsList.appendChild(item);
   }
+
 }
  
 } catch (error) {
