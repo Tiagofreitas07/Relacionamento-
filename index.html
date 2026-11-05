@@ -1680,9 +1680,11 @@ manageButton.style.marginTop = "12px";
   document.getElementById("selectedQuestionnaireName").textContent =
     questionnaire.title;
 
-  document.getElementById("page-questionnaire-versions").classList.remove("hidden");
-});
+const versionsPage = document.getElementById("page-questionnaire-versions");
+versionsPage.classList.remove("hidden");
+versionsPage.classList.add("active");
 
+        });
       item.append(title, description, status, manageButton);
       list.appendChild(item);
     });
