@@ -1693,6 +1693,49 @@ manageButton.style.marginTop = "12px";
   }
 }
 let selectedQuestionnaireId = null;
+    
+document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
+  if (!selectedQuestionnaireId) {
+    alert("Selecione um questionário primeiro.");
+    return;
+  }
+
+  const button = document.getElementById("createQuestionnaireVersionButton");
+  button.disabled = true;
+
+  try {
+    const { data: versions, error: listError } = await client
+      .from("assessment_versions")
+      .select("version_number")
+      .eq("questionnaire_id", selectedQuestionnaireId)
+      .order("version_number", { ascending: false })
+      .limit(1);
+
+    if (listError) throw listError;
+
+    const nextVersion = versions.length
+      ? versions[0].version_number + 1
+      : 1;
+
+    const { error } = await client
+      .from("assessment_versions")
+      .insert({
+        questionnaire_id: selectedQuestionnaireId,
+        version_number: nextVersion,
+        status: "draft"
+      });
+
+    if (error) throw error;
+
+    alert("Versão " + nextVersion + " criada com sucesso!");
+  } catch (error) {
+    console.error(error);
+    alert("Não foi possível criar a versão: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
   const button = document.getElementById("saveQuestionButton");
