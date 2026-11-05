@@ -1701,11 +1701,18 @@ document.getElementById("startThermometerButton")
 
     const button = document.getElementById("startThermometerButton");
     button.disabled = true;
+if (!["namoro", "noivado", "casamento"].includes(currentRelationshipPhase)) {
+  button.disabled = false;
+  alert("Defina a fase do seu relacionamento antes de iniciar a avaliação.");
+  return;
+}
+    
 
-    const { data: questions, error } = await client
-      .from("relationship_questions")
-      .select("id, question_text, dimension_id")
-      .eq("is_active", true);
+   const { data: questions, error } = await client
+  .from("relationship_questions")
+  .select("id, question_text, dimension_id")
+  .eq("is_active", true)
+  .in("phase", ["todas", currentRelationshipPhase]);
 
     button.disabled = false;
 
@@ -1731,7 +1738,7 @@ const { data: cycle, error: cycleError } = await client
   .from("checkin_cycles")
   .insert({
     user_id: authData.user.id,
-    phase: "todas",
+    phase: currentRelationshipPhase,
     share_with_partner: false
   })
   .select("id")
