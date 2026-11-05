@@ -1913,11 +1913,26 @@ if (dimensionsError) {
 } else {
   dimensionsMessage.textContent = "";
 
+const { data: dimensionNames, error: namesError } = await client
+  .from("relationship_dimensions")
+  .select("id, name");
+
+if (namesError) {
+  console.error("Erro ao buscar nomes das dimensões:", namesError);
+}
+
+const namesById = {};
+for (const d of dimensionNames || []) {
+  namesById[d.id] = d.name;
+}
+
   for (const dimension of dimensionResults || []) {
     const item = document.createElement("p");
 
     item.textContent =
-      "Dimensão: " + dimension.dimension_id +
+
+"Dimensão: " + (namesById[dimension.dimension_id] || dimension.dimension_id) +
+
       " — Pontuação: " +
       Number(dimension.weighted_score).toFixed(2) + " de 5";
 
