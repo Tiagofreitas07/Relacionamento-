@@ -1513,6 +1513,19 @@ document.getElementById("manageThermometersButton").addEventListener("click", ()
   window.scrollTo(0, 0);
 });
 
+document.getElementById("manageQuestionnairesButton").addEventListener("click", () => {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+    page.classList.add("hidden");
+  });
+
+  const page = document.getElementById("page-manage-questionnaires");
+  page.classList.remove("hidden");
+  page.classList.add("active");
+
+  window.scrollTo(0, 0);
+});
+
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
   const button = document.getElementById("saveQuestionButton");
