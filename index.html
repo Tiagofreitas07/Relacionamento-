@@ -1561,7 +1561,7 @@ document.getElementById("manageQuestionnairesButton").addEventListener("click", 
   const page = document.getElementById("page-manage-questionnaires");
   page.classList.remove("hidden");
   page.classList.add("active");
-
+ loadQuestionnaires();
   window.scrollTo(0, 0);
 });
 
@@ -1601,6 +1601,50 @@ document.getElementById("createQuestionnaireButton").addEventListener("click", a
     button.disabled = false;
   }
 });
+
+async function loadQuestionnaires() {
+  const list = document.getElementById("questionnairesList");
+  if (!list) return;
+
+  list.textContent = "Carregando questionários...";
+
+  try {
+    const { data, error } = await client
+      .from("assessment_questionnaires")
+      .select("id, title, description, is_active")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    list.replaceChildren();
+
+    if (!data || data.length === 0) {
+      list.textContent = "Nenhum questionário cadastrado.";
+      return;
+    }
+
+    data.forEach(questionnaire => {
+      const item = document.createElement("div");
+      item.style.cssText = "padding:16px 0; border-bottom:1px solid #ddd;";
+
+      const title = document.createElement("h4");
+      title.textContent = questionnaire.title;
+
+      const description = document.createElement("p");
+      description.textContent = questionnaire.description || "Sem descrição.";
+
+      const status = document.createElement("p");
+      status.textContent = questionnaire.is_active ? "Situação: Ativo" : "Situação: Inativo";
+
+      item.append(title, description, status);
+      list.appendChild(item);
+    });
+
+  } catch (error) {
+    console.error("Erro ao carregar questionários:", error);
+    list.textContent = "Não foi possível carregar os questionários.";
+  }
+}
 
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
