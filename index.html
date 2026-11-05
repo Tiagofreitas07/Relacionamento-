@@ -1591,7 +1591,9 @@ const { data, error } = await client
   data.forEach((question) => {
     const item = document.createElement("p");
     item.textContent =
-      question.question_text +
+  question.question_text +
+" | Dimensão: " +
+(document.querySelector('#questionDimension option[value="' + question.dimension_id + '"]')?.textContent || "Não identificada") +
       (question.is_active ? " — Publicada" : " — Rascunho");
     list.appendChild(item);
     const editButton = document.createElement("button");
