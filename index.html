@@ -1843,7 +1843,19 @@ questionsButton.className = "primary-btn";
 item.appendChild(document.createTextNode(" "));
 item.appendChild(questionsButton);
     questionsButton.addEventListener("click", () => {
-  alert("Gerenciar perguntas da dimensão: " + dimension.name);
+document.querySelectorAll(".page").forEach(page => {
+  page.classList.remove("active");
+  page.classList.add("hidden");
+});
+
+document.getElementById("selectedDimensionName").textContent =
+  "Dimensão: " + dimension.name;
+
+const questionsPage = document.getElementById("page-dimension-questions");
+questionsPage.classList.remove("hidden");
+questionsPage.classList.add("active");
+
+window.scrollTo(0, 0);
 });
     list.appendChild(item);
   });
