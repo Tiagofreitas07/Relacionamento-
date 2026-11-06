@@ -1975,6 +1975,7 @@ item.appendChild(answersButton);
 
 
 answersButton.addEventListener("click", () => {
+  selectedAnswerQuestionId = question.id;
   document.querySelectorAll(".page").forEach(page => {
     page.classList.add("hidden");
     page.classList.remove("active");
@@ -2000,7 +2001,52 @@ answersButton.addEventListener("click", () => {
     let selectedVersionId = null;
     let selectedDimensionId = null;
     let selectedVersionStatus = null;
-document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
+    let selectedAnswerQuestionId = null;
+
+document.getElementById("addQuestionAnswerOptionButton").addEventListener("click", async () => {
+  if (!selectedAnswerQuestionId) {
+    alert("Selecione uma pergunta primeiro.");
+    return;
+  }
+
+  const optionText = prompt("Digite o texto da alternativa:");
+  if (optionText === null) return;
+
+  if (!optionText.trim()) {
+    alert("O texto da alternativa não pode ficar vazio.");
+    return;
+  }
+
+  const scoreText = prompt("Digite a pontuação da alternativa:", "1");
+  if (scoreText === null) return;
+
+  const score = Number(scoreText.replace(",", "."));
+
+  if (!scoreText.trim() || !Number.isFinite(score)) {
+    alert("Digite uma pontuação numérica válida.");
+    return;
+  }
+
+  try {
+    const { error } = await client
+      .from("assessment_answer_options")
+      .insert({
+        question_id: selectedAnswerQuestionId,
+        option_text: optionText.trim(),
+        score: score,
+        position: 1
+      });
+
+    if (error) throw error;
+
+    alert("Alternativa cadastrada com sucesso!");
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao cadastrar alternativa: " + error.message);
+  }
+});
+
+    document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
   if (!selectedQuestionnaireId) {
     alert("Selecione um questionário primeiro.");
     return;
