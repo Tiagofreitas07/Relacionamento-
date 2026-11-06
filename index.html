@@ -1897,9 +1897,17 @@ loadDimensionQuestions();
       " | Fase: " + question.phase +
       " | " + (question.is_active ? "Ativa" : "Inativa");
 
-    list.appendChild(item);
+   const editButton = document.createElement("button");
+editButton.type = "button";
+editButton.textContent = "Editar";
+editButton.className = "primary-btn";
+
+item.appendChild(document.createTextNode(" "));
+item.appendChild(editButton);
+list.appendChild(item);
   });
-} let selectedQuestionnaireId = null;
+} 
+    let selectedQuestionnaireId = null;
     let selectedVersionId = null;
     let selectedDimensionId = null;
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
