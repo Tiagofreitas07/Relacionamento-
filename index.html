@@ -2211,7 +2211,6 @@ const nextPosition = existingOptions.length > 0
   }
 });
 
-async function loadQuestionAnswerOptions() {
  
 async function loadAssessmentResults(attemptId) {
   const title = document.getElementById("assessmentResultTitle");
@@ -2266,6 +2265,132 @@ async function loadAssessmentResults(attemptId) {
   }
 }
  
+async function loadAssessmentQuestions(versionId) {
+  const container = document.getElementById("assessmentAnswerQuestions");
+  const progress = document.getElementById("assessmentAnswerProgress");
+  const finishButton = document.getElementById("finishAssessmentButton");
+
+  finishButton.disabled = true;
+  container.textContent = "Carregando perguntas...";
+  progress.textContent = "Preparando questionário...";
+
+  if (!versionId) {
+    container.textContent = "Nenhum questionário selecionado.";
+    return;
+  }
+
+  try {
+    const { data: version, error: versionError } = await client
+      .from("assessment_versions")
+      .select("id, status")
+      .eq("id", versionId)
+      .eq("status", "published")
+      .single();
+
+    if (versionError || !version) {
+      throw new Error("Versão publicada não encontrada.");
+    }
+
+    const { data: dimensions, error: dimensionsError } = await client
+      .from("assessment_dimensions")
+      .select("id, name, position")
+      .eq("version_id", versionId)
+      .order("position", { ascending: true });
+
+    if (dimensionsError) throw dimensionsError;
+
+    if (!dimensions || dimensions.length === 0) {
+      throw new Error("Este questionário não possui dimensões.");
+    }
+
+    const dimensionIds = dimensions.map(d => d.id);
+
+    const { data: questions, error: questionsError } = await client
+      .from("assessment_questions")
+      .select("id, dimension_id, question_text")
+      .in("dimension_id", dimensionIds);
+
+    if (questionsError) throw questionsError;
+
+    if (!questions || questions.length === 0) {
+      throw new Error("Nenhuma pergunta disponível.");
+    }
+
+    const questionIds = questions.map(q => q.id);
+
+    const { data: options, error: optionsError } = await client
+      .from("assessment_answer_options")
+      .select("id, question_id, option_text, position")
+      .in("question_id", questionIds)
+      .order("position", { ascending: true });
+
+    if (optionsError) throw optionsError;
+
+    container.innerHTML = "";
+
+    let questionNumber = 0;
+
+    dimensions.forEach(dimension => {
+      const dimensionQuestions = questions.filter(
+        question => question.dimension_id === dimension.id
+      );
+
+      if (dimensionQuestions.length === 0) return;
+
+      const heading = document.createElement("h3");
+      heading.textContent = dimension.name;
+      container.appendChild(heading);
+
+      dimensionQuestions.forEach(question => {
+        questionNumber++;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "card";
+
+        const label = document.createElement("p");
+        label.textContent =
+          questionNumber + ". " + question.question_text;
+
+        wrapper.appendChild(label);
+
+        const questionOptions = (options || []).filter(
+          option => option.question_id === question.id
+        );
+
+        questionOptions.forEach(option => {
+          const optionLabel = document.createElement("label");
+          optionLabel.style.display = "block";
+          optionLabel.style.marginBottom = "8px";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "assessment-question-" + question.id;
+          input.value = option.id;
+
+          optionLabel.appendChild(input);
+          optionLabel.appendChild(
+            document.createTextNode(" " + option.option_text)
+          );
+
+          wrapper.appendChild(optionLabel);
+        });
+
+        container.appendChild(wrapper);
+      });
+    });
+
+    progress.textContent =
+      "0 de " + questionNumber + " perguntas respondidas.";
+
+  } catch (error) {
+    console.error(error);
+    container.textContent =
+      "Erro ao carregar perguntas: " + error.message;
+    progress.textContent =
+      "Não foi possível carregar o questionário.";
+  }
+}
+
  async function loadQuestionAnswerOptions() {
 const list = document.getElementById("questionAnswerOptionsList");
   if (!selectedAnswerQuestionId) {
