@@ -2042,6 +2042,7 @@ document.getElementById("addQuestionAnswerOptionButton").addEventListener("click
     if (error) throw error;
 
     alert("Alternativa cadastrada com sucesso!");
+    await loadQuestionAnswerOptions();
   } catch (error) {
     console.error(error);
     alert("Erro ao cadastrar alternativa: " + error.message);
