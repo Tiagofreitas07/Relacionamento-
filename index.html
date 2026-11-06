@@ -2032,14 +2032,28 @@ if (selectedVersionStatus !== "draft") {
     return;
   }
 
-  try {
+   try {
+const { data: existingOptions, error: listError } = await client
+  .from("assessment_answer_options")
+  .select("position")
+  .eq("question_id", selectedAnswerQuestionId)
+  .order("position", { ascending: false })
+  .limit(1);
+
+if (listError) throw listError;
+
+const nextPosition = existingOptions.length > 0
+  ? existingOptions[0].position + 1
+  : 1;
+
+
     const { error } = await client
       .from("assessment_answer_options")
       .insert({
         question_id: selectedAnswerQuestionId,
         option_text: optionText.trim(),
         score: score,
-        position: 1
+      position: nextPosition
       });
 
     if (error) throw error;
