@@ -2487,6 +2487,50 @@ async function saveAssessmentAnswers() {
   return answers.length;
 }
 
+document.getElementById("finishAssessmentButton").addEventListener("click", async () => {
+  const button = document.getElementById("finishAssessmentButton");
+
+  if (!selectedAssessmentAttemptId) {
+    alert("Nenhuma tentativa de questionário iniciada.");
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await saveAssessmentAnswers();
+
+    const { data: completed, error } = await client
+      .from("assessment_attempts")
+      .update({ status: "completed" })
+      .eq("id", selectedAssessmentAttemptId)
+      .eq("status", "in_progress")
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    if (!completed) throw new Error("Não foi possível concluir o questionário.");
+
+    document.querySelectorAll(".page").forEach(page => {
+      page.classList.add("hidden");
+      page.classList.remove("active");
+    });
+
+    const resultsPage = document.getElementById("page-assessment-results");
+    resultsPage.classList.remove("hidden");
+    resultsPage.classList.add("active");
+
+    await loadAssessmentResults(selectedAssessmentAttemptId);
+    window.scrollTo(0, 0);
+
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao finalizar questionário: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
 async function startAssessmentAttempt(versionId) {
   if (!versionId) {
     throw new Error("Nenhuma versão de questionário selecionada.");
