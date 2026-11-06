@@ -1938,7 +1938,21 @@ item.appendChild(editButton);
   alert("Erro ao atualizar pergunta: " + error.message);
 }
 });
-list.appendChild(item);
+const answersButton = document.createElement("button");
+answersButton.type = "button";
+answersButton.textContent = "Gerenciar respostas";
+answersButton.className = "primary-btn";
+
+item.appendChild(document.createTextNode(" "));
+item.appendChild(answersButton);
+
+answersButton.addEventListener("click", () => {
+  alert(
+    "Gerenciamento de respostas da pergunta: " +
+    question.question_text
+  );
+});
+    list.appendChild(item);
   });
 } 
     let selectedQuestionnaireId = null;
