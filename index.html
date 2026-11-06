@@ -1843,6 +1843,58 @@ if (version.status === "draft") {
     publishButton.disabled = true;
 
     try {
+    const { data: dimensions, error: dimensionsError } = await client
+  .from("assessment_dimensions")
+  .select("id")
+  .eq("version_id", version.id);
+
+if (dimensionsError) throw dimensionsError;
+
+if (!dimensions || dimensions.length === 0) {
+  alert("Não é possível publicar: cadastre pelo menos uma dimensão.");
+  publishButton.disabled = false;
+  return;
+} 
+  
+const dimensionIds = dimensions.map(dimension => dimension.id);
+
+const { data: questions, error: questionsError } = await client
+  .from("assessment_questions")
+  .select("id, dimension_id")
+  .in("dimension_id", dimensionIds);
+
+if (questionsError) throw questionsError;
+
+const dimensionWithoutQuestions = dimensionIds.some(
+  id => !questions.some(question => question.dimension_id === id)
+);
+
+if (dimensionWithoutQuestions) {
+  alert("Não é possível publicar: todas as dimensões precisam ter pelo menos uma pergunta.");
+  publishButton.disabled = false;
+  return;
+}
+
+   
+const questionIds = questions.map(question => question.id);
+
+const { data: answerOptions, error: optionsError } = await client
+  .from("assessment_answer_options")
+  .select("question_id")
+  .in("question_id", questionIds);
+
+if (optionsError) throw optionsError;
+
+const questionWithoutEnoughOptions = questionIds.some(
+  id => answerOptions.filter(option => option.question_id === id).length < 2
+);
+
+if (questionWithoutEnoughOptions) {
+  alert("Não é possível publicar: cada pergunta precisa ter pelo menos duas alternativas de resposta.");
+  publishButton.disabled = false;
+  return;
+}
+ 
       const { data: published, error } = await client
         .from("assessment_versions")
         .update({ status: "published" })
