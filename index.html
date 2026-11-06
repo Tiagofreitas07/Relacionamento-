@@ -2182,8 +2182,62 @@ const nextPosition = existingOptions.length > 0
 });
 
 async function loadQuestionAnswerOptions() {
-  const list = document.getElementById("questionAnswerOptionsList");
+ 
+async function loadAssessmentResults(attemptId) {
+  const title = document.getElementById("assessmentResultTitle");
+  const status = document.getElementById("assessmentResultStatus");
+  const list = document.getElementById("assessmentDimensionScores");
 
+  if (!attemptId) {
+    status.textContent = "Nenhum questionário selecionado.";
+    list.textContent = "";
+    return;
+  }
+
+  status.textContent = "Carregando resultados...";
+  list.innerHTML = "";
+
+  try {
+    const { data, error } = await client
+      .rpc("get_assessment_dimension_scores", {
+        p_attempt_id: attemptId
+      });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      status.textContent = "Nenhum resultado disponível.";
+      return;
+    }
+
+    title.textContent = "Meu resultado";
+    status.textContent = "Questionário concluído.";
+
+    data.forEach(dimension => {
+      const item = document.createElement("div");
+      item.className = "card";
+
+      const name = document.createElement("h3");
+      name.textContent = dimension.dimension_name;
+
+      const score = document.createElement("p");
+      score.textContent =
+        "Pontuação: " + dimension.total_score;
+
+      item.appendChild(name);
+      item.appendChild(score);
+      list.appendChild(item);
+    });
+
+  } catch (error) {
+    console.error(error);
+    status.textContent =
+      "Erro ao carregar resultados: " + error.message;
+  }
+}
+ 
+ async function loadQuestionAnswerOptions() {
+const list = document.getElementById("questionAnswerOptionsList");
   if (!selectedAnswerQuestionId) {
     list.textContent = "Nenhuma pergunta selecionada.";
     return;
