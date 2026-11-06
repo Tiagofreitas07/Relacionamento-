@@ -1786,7 +1786,7 @@ manageVersionButton.addEventListener("click", async () => {
   });
 
   selectedVersionId = version.id;
-
+selectedVersionStatus = version.status;
   document.getElementById("selectedVersionName").textContent =
     "Versão " + version.version_number;
 
@@ -1910,6 +1910,7 @@ list.appendChild(item);
     let selectedQuestionnaireId = null;
     let selectedVersionId = null;
     let selectedDimensionId = null;
+    let selectedVersionStatus = null;
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
   if (!selectedQuestionnaireId) {
     alert("Selecione um questionário primeiro.");
