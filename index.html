@@ -2392,6 +2392,47 @@ async function loadAssessmentQuestions(versionId) {
 }
 let selectedAssessmentAttemptId = null;
 let selectedAssessmentVersionId = null;
+    
+async function saveAssessmentAnswers() {
+  if (!selectedAssessmentAttemptId) {
+    throw new Error("Nenhuma tentativa de questionário selecionada.");
+  }
+
+  const container = document.getElementById("assessmentAnswerQuestions");
+  const selectedInputs = container.querySelectorAll(
+    'input[type="radio"]:checked'
+  );
+
+  const allQuestions = new Set(
+    Array.from(container.querySelectorAll('input[type="radio"]'))
+      .map(input => input.name)
+  );
+
+  if (allQuestions.size === 0) {
+    throw new Error("Nenhuma pergunta disponível para responder.");
+  }
+
+  if (selectedInputs.length !== allQuestions.size) {
+    throw new Error("Responda todas as perguntas antes de finalizar.");
+  }
+
+  const answers = Array.from(selectedInputs).map(input => ({
+    attempt_id: selectedAssessmentAttemptId,
+    question_id: input.name.replace("assessment-question-", ""),
+    option_id: input.value
+  }));
+
+  const { error } = await client
+    .from("assessment_attempt_answers")
+    .upsert(answers, {
+      onConflict: "attempt_id,question_id"
+    });
+
+  if (error) throw error;
+
+  return answers.length;
+}
+
  async function loadQuestionAnswerOptions() {
 const list = document.getElementById("questionAnswerOptionsList");
   if (!selectedAnswerQuestionId) {
