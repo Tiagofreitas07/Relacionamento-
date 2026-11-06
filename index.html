@@ -1902,6 +1902,7 @@ try {
   if (error) throw error;
 
   alert("Dimensão cadastrada com sucesso!");
+  await loadVersionDimensions();
 } catch (error) {
   console.error(error);
   alert("Erro ao cadastrar dimensão: " + error.message);
