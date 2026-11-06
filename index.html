@@ -1861,7 +1861,44 @@ window.scrollTo(0, 0);
     list.appendChild(item);
   });
 }
-    let selectedQuestionnaireId = null;
+   async function loadDimensionQuestions() {
+  const list = document.getElementById("dimensionQuestionsList");
+  list.textContent = "Carregando perguntas...";
+
+  if (!selectedDimensionId) {
+    list.textContent = "Nenhuma dimensão selecionada.";
+    return;
+  }
+
+  const { data, error } = await client
+    .from("assessment_questions")
+    .select("id, question_text, phase, is_active")
+    .eq("dimension_id", selectedDimensionId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    list.textContent = "Erro ao carregar perguntas.";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    list.textContent = "Nenhuma pergunta cadastrada.";
+    return;
+  }
+
+  data.forEach((question, index) => {
+    const item = document.createElement("p");
+    item.textContent =
+      (index + 1) + ". " + question.question_text +
+      " | Fase: " + question.phase +
+      " | " + (question.is_active ? "Ativa" : "Inativa");
+
+    list.appendChild(item);
+  });
+} let selectedQuestionnaireId = null;
     let selectedVersionId = null;
     let selectedDimensionId = null;
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
