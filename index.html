@@ -2004,7 +2004,7 @@ answersButton.addEventListener("click", () => {
     let selectedAnswerQuestionId = null;
 
 document.getElementById("addQuestionAnswerOptionButton").addEventListener("click", async () => {
-alert("TESTE: botão funcionando");
+  
   if (!selectedAnswerQuestionId) {
     alert("Selecione uma pergunta primeiro.");
     return;
@@ -2046,6 +2046,140 @@ alert("TESTE: botão funcionando");
     alert("Erro ao cadastrar alternativa: " + error.message);
   }
 });
+
+async function loadQuestionAnswerOptions() {
+  const list = document.getElementById("questionAnswerOptionsList");
+
+  if (!selectedAnswerQuestionId) {
+    list.textContent = "Nenhuma pergunta selecionada.";
+    return;
+  }
+
+  list.textContent = "Carregando alternativas...";
+
+  const { data, error } = await client
+    .from("assessment_answer_options")
+    .select("id, option_text, score, position")
+    .eq("question_id", selectedAnswerQuestionId)
+    .order("position", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    list.textContent = "Erro ao carregar alternativas: " + error.message;
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    list.textContent = "Nenhuma alternativa cadastrada.";
+    return;
+  }
+
+  data.forEach((option, index) => {
+    const item = document.createElement("div");
+    item.style.marginBottom = "16px";
+
+    const description = document.createElement("p");
+    description.textContent =
+      (index + 1) + ". " + option.option_text +
+      " | Pontuação: " + option.score;
+
+    item.appendChild(description);
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "primary-btn";
+    editButton.textContent = "Editar alternativa";
+    editButton.disabled = selectedVersionStatus !== "draft";
+
+    editButton.addEventListener("click", async () => {
+      const newText = prompt(
+        "Texto da alternativa:",
+        option.option_text
+      );
+      if (newText === null) return;
+
+      if (!newText.trim()) {
+        alert("O texto não pode ficar vazio.");
+        return;
+      }
+
+      const newScoreText = prompt(
+        "Pontuação:",
+        String(option.score)
+      );
+      if (newScoreText === null) return;
+
+      const newScore = Number(newScoreText.replace(",", "."));
+
+      if (!newScoreText.trim() || !Number.isFinite(newScore)) {
+        alert("Digite uma pontuação válida.");
+        return;
+      }
+
+      try {
+        const { data: updated, error: updateError } = await client
+          .from("assessment_answer_options")
+          .update({
+            option_text: newText.trim(),
+            score: newScore
+          })
+          .eq("id", option.id)
+          .eq("question_id", selectedAnswerQuestionId)
+          .select("id")
+          .single();
+
+        if (updateError) throw updateError;
+        if (!updated) throw new Error("Alternativa não atualizada.");
+
+        alert("Alternativa atualizada!");
+        await loadQuestionAnswerOptions();
+      } catch (error) {
+        alert("Erro ao editar: " + error.message);
+      }
+    });
+
+    item.appendChild(editButton);
+    item.appendChild(document.createTextNode(" "));
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "primary-btn";
+    deleteButton.textContent = "Excluir alternativa";
+    deleteButton.disabled = selectedVersionStatus !== "draft";
+
+    deleteButton.addEventListener("click", async () => {
+      if (!confirm("Deseja realmente excluir esta alternativa?")) {
+        return;
+      }
+
+      try {
+        const { data: deleted, error: deleteError } = await client
+          .from("assessment_answer_options")
+          .delete()
+          .eq("id", option.id)
+          .eq("question_id", selectedAnswerQuestionId)
+          .select("id");
+
+        if (deleteError) throw deleteError;
+
+        if (!deleted || deleted.length === 0) {
+          throw new Error("A alternativa não foi excluída.");
+        }
+
+        alert("Alternativa excluída!");
+        await loadQuestionAnswerOptions();
+      } catch (error) {
+        alert("Erro ao excluir: " + error.message);
+      }
+    });
+
+    item.appendChild(deleteButton);
+    list.appendChild(item);
+  });
+}
 
     document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
   if (!selectedQuestionnaireId) {
