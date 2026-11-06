@@ -1768,7 +1768,7 @@ document.querySelectorAll(".page").forEach(page => {
   page.classList.remove("active");
   page.classList.add("hidden");
 });
-
+selectedVersionId = version.id;
 document.getElementById("selectedVersionName").textContent =
   "Versão " + version.version_number;
 
@@ -1785,7 +1785,7 @@ item.appendChild(manageVersionButton);
 }
 
     let selectedQuestionnaireId = null;
-    
+    let selectedVersionId = null;
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
   if (!selectedQuestionnaireId) {
     alert("Selecione um questionário primeiro.");
