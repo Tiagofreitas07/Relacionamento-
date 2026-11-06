@@ -1826,6 +1826,9 @@ questionsButton.className = "primary-btn";
 
 item.appendChild(document.createTextNode(" "));
 item.appendChild(questionsButton);
+    questionsButton.addEventListener("click", () => {
+  alert("Gerenciar perguntas da dimensão: " + dimension.name);
+});
     list.appendChild(item);
   });
 }
