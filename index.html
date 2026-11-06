@@ -2390,7 +2390,8 @@ async function loadAssessmentQuestions(versionId) {
       "Não foi possível carregar o questionário.";
   }
 }
-
+let selectedAssessmentAttemptId = null;
+let selectedAssessmentVersionId = null;
  async function loadQuestionAnswerOptions() {
 const list = document.getElementById("questionAnswerOptionsList");
   if (!selectedAnswerQuestionId) {
