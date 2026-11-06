@@ -2089,6 +2089,7 @@ await loadQuestions();
     if (error) throw error;
 
     alert("Pergunta cadastrada com sucesso!");
+    await loadDimensionQuestions();
   } catch (error) {
     console.error(error);
     alert("Erro ao cadastrar pergunta: " + error.message);
