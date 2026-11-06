@@ -1828,7 +1828,20 @@ document.getElementById("createQuestionnaireVersionButton").addEventListener("cl
     button.disabled = false;
   }
 });
+document.getElementById("addVersionDimensionButton").addEventListener("click", () => {
+  if (!selectedVersionId) {
+    alert("Selecione uma versão primeiro.");
+    return;
+  }
 
+  const dimensionName = prompt("Digite o nome da dimensão:");
+
+  if (!dimensionName || !dimensionName.trim()) {
+    return;
+  }
+
+  alert("Dimensão informada: " + dimensionName.trim());
+});
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
   const button = document.getElementById("saveQuestionButton");
