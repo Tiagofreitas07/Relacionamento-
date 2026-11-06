@@ -1819,6 +1819,13 @@ async function loadVersionDimensions() {
   data.forEach(dimension => {
     const item = document.createElement("p");
     item.textContent = dimension.position + ". " + dimension.name;
+    const questionsButton = document.createElement("button");
+questionsButton.type = "button";
+questionsButton.textContent = "Gerenciar perguntas";
+questionsButton.className = "primary-btn";
+
+item.appendChild(document.createTextNode(" "));
+item.appendChild(questionsButton);
     list.appendChild(item);
   });
 }
