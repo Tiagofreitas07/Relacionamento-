@@ -1905,7 +1905,7 @@ editButton.className = "primary-btn";
 
 item.appendChild(document.createTextNode(" "));
 item.appendChild(editButton);
-    editButton.addEventListener("click", () => {
+ editButton.addEventListener("click", async () => {
   if (selectedVersionStatus !== "draft") {
     alert("Somente versões em rascunho podem ser editadas.");
     return;
@@ -1920,7 +1920,23 @@ item.appendChild(editButton);
     return;
   }
 
-  alert("Novo texto informado: " + newText.trim());
+  try {
+  const { error } = await client
+    .from("assessment_questions")
+    .update({
+      question_text: newText.trim()
+    })
+    .eq("id", question.id);
+
+  if (error) throw error;
+
+  alert("Pergunta atualizada com sucesso!");
+  await loadDimensionQuestions();
+
+} catch (error) {
+  console.error(error);
+  alert("Erro ao atualizar pergunta: " + error.message);
+}
 });
 list.appendChild(item);
   });
