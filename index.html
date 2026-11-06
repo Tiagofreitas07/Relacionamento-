@@ -1806,9 +1806,63 @@ versionsPage.classList.remove("hidden");
 versionsPage.classList.add("active");
         loadQuestionnaireVersions();
 
-        });
-      item.append(title, description, status, manageButton);
-      list.appendChild(item);
+      });
+const answerButton = document.createElement("button");
+answerButton.type = "button";
+answerButton.className = "primary-btn";
+answerButton.textContent = "Responder questionário";
+answerButton.style.marginLeft = "12px";
+
+answerButton.addEventListener("click", async () => {
+  answerButton.disabled = true;
+
+  try {
+    const { data: versions, error } = await client
+      .from("assessment_versions")
+      .select("id, version_number")
+      .eq("questionnaire_id", questionnaire.id)
+      .eq("status", "published")
+      .order("version_number", { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    if (!versions || versions.length === 0) {
+      alert("Este questionário ainda não possui uma versão publicada.");
+      return;
+    }
+
+    const versionId = versions[0].id;
+
+    await startAssessmentAttempt(versionId);
+
+    document.querySelectorAll(".page").forEach(page => {
+      page.classList.add("hidden");
+      page.classList.remove("active");
+    });
+
+    const answerPage = document.getElementById("page-assessment-answer");
+    answerPage.classList.remove("hidden");
+    answerPage.classList.add("active");
+
+    document.getElementById("assessmentAnswerTitle").textContent =
+      questionnaire.title;
+
+    document.getElementById("assessmentAnswerDescription").textContent =
+      questionnaire.description || "Responda às perguntas.";
+
+    await loadAssessmentQuestions(versionId);
+
+    window.scrollTo(0, 0);
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao iniciar questionário: " + error.message);
+  } finally {
+    answerButton.disabled = false;
+  }
+});
+
+      item.append(title, description, status, manageButton, answerButton);
     });
 
   } catch (error) {
