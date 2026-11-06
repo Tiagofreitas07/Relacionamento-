@@ -2435,6 +2435,18 @@ async function loadAssessmentQuestions(versionId) {
 
     progress.textContent =
       "0 de " + questionNumber + " perguntas respondidas.";
+    
+container.addEventListener("change", () => {
+  const answered = container.querySelectorAll(
+    'input[type="radio"]:checked'
+  ).length;
+
+  progress.textContent =
+    answered + " de " + questionNumber + " perguntas respondidas.";
+
+  finishButton.disabled = answered !== questionNumber;
+});
+
 
   } catch (error) {
     console.error(error);
