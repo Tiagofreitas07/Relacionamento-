@@ -2502,7 +2502,10 @@ document.getElementById("finishAssessmentButton").addEventListener("click", asyn
 
     const { data: completed, error } = await client
       .from("assessment_attempts")
-      .update({ status: "completed" })
+     .update({
+  status: "completed",
+  completed_at: new Date().toISOString()
+})
       .eq("id", selectedAssessmentAttemptId)
       .eq("status", "in_progress")
       .select("id")
