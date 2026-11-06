@@ -1973,12 +1973,26 @@ answersButton.className = "primary-btn";
 item.appendChild(document.createTextNode(" "));
 item.appendChild(answersButton);
 
+
 answersButton.addEventListener("click", () => {
-  alert(
-    "Gerenciamento de respostas da pergunta: " +
-    question.question_text
-  );
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.add("hidden");
+    page.classList.remove("active");
+  });
+
+  const answersPage = document.getElementById("page-question-answer-options");
+  answersPage.classList.remove("hidden");
+  answersPage.classList.add("active");
+
+  document.getElementById("selectedAnswerQuestionName").textContent =
+    "Pergunta: " + question.question_text;
+
+  document.getElementById("questionAnswerOptionsList").textContent =
+    "Nenhuma alternativa cadastrada.";
+
+  window.scrollTo(0, 0);
 });
+
     list.appendChild(item);
   });
 } 
