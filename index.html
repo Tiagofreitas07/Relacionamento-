@@ -1900,6 +1900,7 @@ loadDimensionQuestions();
    const editButton = document.createElement("button");
 editButton.type = "button";
 editButton.textContent = "Editar";
+    editButton.disabled = selectedVersionStatus !== "draft";
 editButton.className = "primary-btn";
 
 item.appendChild(document.createTextNode(" "));
