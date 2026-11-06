@@ -1763,27 +1763,65 @@ manageVersionButton.className = "primary-btn";
 manageVersionButton.textContent = "Gerenciar";
 manageVersionButton.style.marginLeft = "12px";
 
-manageVersionButton.addEventListener("click", () => {
-document.querySelectorAll(".page").forEach(page => {
-  page.classList.remove("active");
-  page.classList.add("hidden");
-});
-selectedVersionId = version.id;
-document.getElementById("selectedVersionName").textContent =
-  "Versão " + version.version_number;
+manageVersionButton.addEventListener("click", async () => {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+    page.classList.add("hidden");
+  });
 
-const editorPage = document.getElementById("page-questionnaire-version-editor");
-editorPage.classList.remove("hidden");
-editorPage.classList.add("active");
+  selectedVersionId = version.id;
 
-window.scrollTo(0, 0);
+  document.getElementById("selectedVersionName").textContent =
+    "Versão " + version.version_number;
+
+  const editorPage = document.getElementById("page-questionnaire-version-editor");
+  editorPage.classList.remove("hidden");
+  editorPage.classList.add("active");
+
+  window.scrollTo(0, 0);
+
+  await loadVersionDimensions();
 });
 
 item.appendChild(manageVersionButton);
     list.appendChild(item);
   });
 }
+async function loadVersionDimensions() {
+  const list = document.getElementById("versionDimensionsList");
 
+  list.textContent = "Carregando dimensões...";
+
+  if (!selectedVersionId) {
+    list.textContent = "Nenhuma versão selecionada.";
+    return;
+  }
+
+  const { data, error } = await client
+    .from("assessment_dimensions")
+    .select("id, name, description, position")
+    .eq("version_id", selectedVersionId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    list.textContent = "Erro ao carregar dimensões.";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    list.textContent = "Nenhuma dimensão configurada.";
+    return;
+  }
+
+  data.forEach(dimension => {
+    const item = document.createElement("p");
+    item.textContent = dimension.position + ". " + dimension.name;
+    list.appendChild(item);
+  });
+}
     let selectedQuestionnaireId = null;
     let selectedVersionId = null;
 document.getElementById("createQuestionnaireVersionButton").addEventListener("click", async () => {
