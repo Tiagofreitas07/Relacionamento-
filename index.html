@@ -1828,7 +1828,7 @@ document.getElementById("createQuestionnaireVersionButton").addEventListener("cl
     button.disabled = false;
   }
 });
-document.getElementById("addVersionDimensionButton").addEventListener("click", () => {
+document.getElementById("addVersionDimensionButton").addEventListener("click", async () => {
   if (!selectedVersionId) {
     alert("Selecione uma versão primeiro.");
     return;
@@ -1839,8 +1839,35 @@ document.getElementById("addVersionDimensionButton").addEventListener("click", (
   if (!dimensionName || !dimensionName.trim()) {
     return;
   }
+try {
+  const { data: existingDimensions, error: listError } = await client
+    .from("assessment_dimensions")
+    .select("position")
+    .eq("version_id", selectedVersionId)
+    .order("position", { ascending: false })
+    .limit(1);
 
-  alert("Dimensão informada: " + dimensionName.trim());
+  if (listError) throw listError;
+
+  const nextPosition = existingDimensions.length
+    ? existingDimensions[0].position + 1
+    : 1;
+
+  const { error } = await client
+    .from("assessment_dimensions")
+    .insert({
+      version_id: selectedVersionId,
+      name: dimensionName.trim(),
+      position: nextPosition
+    });
+
+  if (error) throw error;
+
+  alert("Dimensão cadastrada com sucesso!");
+} catch (error) {
+  console.error(error);
+  alert("Erro ao cadastrar dimensão: " + error.message);
+}
 });
  let editingQuestionId = null;
 document.getElementById("saveQuestionButton").addEventListener("click", async () => {
