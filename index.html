@@ -2010,7 +2010,10 @@ document.getElementById("addQuestionAnswerOptionButton").addEventListener("click
     alert("Selecione uma pergunta primeiro.");
     return;
   }
-
+if (selectedVersionStatus !== "draft") {
+  alert("Somente versões em rascunho podem ser alteradas.");
+  return;
+}
   const optionText = prompt("Digite o texto da alternativa:");
   if (optionText === null) return;
 
