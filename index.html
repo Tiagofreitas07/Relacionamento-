@@ -1826,6 +1826,46 @@ selectedVersionStatus = version.status;
   await loadVersionDimensions();
 });
 
+if (version.status === "draft") {
+  const publishButton = document.createElement("button");
+  publishButton.type = "button";
+  publishButton.className = "primary-btn";
+  publishButton.textContent = "Publicar versão";
+  publishButton.style.marginLeft = "12px";
+
+  publishButton.addEventListener("click", async () => {
+    const confirmed = confirm(
+      "Deseja publicar esta versão? Após a publicação, suas perguntas e alternativas não poderão mais ser editadas."
+    );
+
+    if (!confirmed) return;
+
+    publishButton.disabled = true;
+
+    try {
+      const { data: published, error } = await client
+        .from("assessment_versions")
+        .update({ status: "published" })
+        .eq("id", version.id)
+        .eq("status", "draft")
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      if (!published) throw new Error("A versão não foi publicada.");
+
+      alert("Versão publicada com sucesso!");
+      await loadQuestionnaireVersions();
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao publicar versão: " + error.message);
+      publishButton.disabled = false;
+    }
+  });
+
+  item.appendChild(publishButton);
+}
+
 item.appendChild(manageVersionButton);
     list.appendChild(item);
   });
