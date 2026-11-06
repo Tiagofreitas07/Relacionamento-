@@ -2010,7 +2010,52 @@ await loadQuestions();
   }
 });
   
-    
+    document.getElementById("addDimensionQuestionButton").addEventListener("click", async () => {
+  if (!selectedDimensionId) {
+    alert("Selecione uma dimensão primeiro.");
+    return;
+  }
+
+  const questionText = prompt("Digite o texto da pergunta:");
+
+  if (!questionText || !questionText.trim()) {
+    return;
+  }
+
+  const phase = prompt(
+    "Para qual fase esta pergunta será utilizada? Digite: namoro, noivado, casamento ou todos.",
+    "todos"
+  );
+
+  if (phase === null) return;
+
+  const validPhases = ["namoro", "noivado", "casamento", "todos"];
+  const selectedPhase = phase.trim().toLowerCase();
+
+  if (!validPhases.includes(selectedPhase)) {
+    alert("Fase inválida. Nenhuma pergunta foi cadastrada.");
+    return;
+  }
+
+  try {
+    const { error } = await client
+      .from("assessment_questions")
+      .insert({
+        dimension_id: selectedDimensionId,
+        question_text: questionText.trim(),
+        phase: selectedPhase,
+        weight: 1,
+        is_active: false
+      });
+
+    if (error) throw error;
+
+    alert("Pergunta cadastrada com sucesso!");
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao cadastrar pergunta: " + error.message);
+  }
+});
     
 async function loadQuestionDimensions() {
   const select = document.getElementById("questionDimension");
