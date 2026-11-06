@@ -1905,6 +1905,23 @@ editButton.className = "primary-btn";
 
 item.appendChild(document.createTextNode(" "));
 item.appendChild(editButton);
+    editButton.addEventListener("click", () => {
+  if (selectedVersionStatus !== "draft") {
+    alert("Somente versões em rascunho podem ser editadas.");
+    return;
+  }
+
+  const newText = prompt("Edite o texto da pergunta:", question.question_text);
+
+  if (newText === null) return;
+
+  if (!newText.trim()) {
+    alert("O texto da pergunta não pode ficar vazio.");
+    return;
+  }
+
+  alert("Novo texto informado: " + newText.trim());
+});
 list.appendChild(item);
   });
 } 
