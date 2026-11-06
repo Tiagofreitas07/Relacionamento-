@@ -2433,6 +2433,40 @@ async function saveAssessmentAnswers() {
   return answers.length;
 }
 
+async function startAssessmentAttempt(versionId) {
+  if (!versionId) {
+    throw new Error("Nenhuma versão de questionário selecionada.");
+  }
+
+  const { data: authData, error: authError } =
+    await client.auth.getUser();
+
+  if (authError) throw authError;
+
+  const user = authData?.user;
+
+  if (!user) {
+    throw new Error("Faça login para responder ao questionário.");
+  }
+
+  const { data: attempt, error } = await client
+    .from("assessment_attempts")
+    .insert({
+      version_id: versionId,
+      user_id: user.id,
+      status: "in_progress"
+    })
+    .select("id, version_id")
+    .single();
+
+  if (error) throw error;
+
+  selectedAssessmentAttemptId = attempt.id;
+  selectedAssessmentVersionId = attempt.version_id;
+
+  return attempt.id;
+}
+
  async function loadQuestionAnswerOptions() {
 const list = document.getElementById("questionAnswerOptionsList");
   if (!selectedAnswerQuestionId) {
