@@ -700,7 +700,7 @@
 <!-- GERENCIAMENTO ADMINISTRATIVO DE PLANILHAS -->
 <section id="page-manage-downloadable-tools" class="page hidden">
   <h1 class="page-title">Gerenciar Planilhas</h1>
-  <p class="page-description">Cadastre e edite as ferramentas do Entre Nós. Os arquivos devem ser enviados previamente ao bucket privado <strong>entre-nos-planilhas</strong> no Supabase Storage.</p>
+  <p class="page-description">Cadastre e edite as ferramentas do Entre Nós. Envie arquivos Excel diretamente do computador ou mantenha os caminhos já cadastrados no armazenamento privado.</p>
   <div class="card">
     <h3 id="toolEditorHeading">Nova planilha</h3>
     <form id="adminToolForm">
@@ -717,6 +717,15 @@
       <input id="adminToolFreePath" style="width:100%;box-sizing:border-box;padding:12px" placeholder="Noivado/Pasta/Gratuito/arquivo.xlsx">
       <label for="adminToolPremiumPath" style="display:block;margin:12px 0 6px">Caminho da versão Premium (no Storage)</label>
       <input id="adminToolPremiumPath" style="width:100%;box-sizing:border-box;padding:12px" placeholder="Noivado/Pasta/Premium/arquivo.xlsx">
+      <div style="margin:18px 0;padding:16px;background:#edf2ef;border-radius:10px">
+        <strong>Enviar arquivos Excel</strong>
+        <p style="margin:8px 0 12px;font-size:13px;line-height:1.5">Escolha um arquivo .xlsx ou .xls para cada versão. Ao salvar, o envio será feito automaticamente. Se não selecionar um novo arquivo, o caminho atual será mantido.</p>
+        <label for="adminToolFreeFile" style="display:block;margin:10px 0 6px">Arquivo da versão gratuita</label>
+        <input id="adminToolFreeFile" type="file" accept=".xlsx,.xls" style="width:100%;max-width:100%">
+        <label for="adminToolPremiumFile" style="display:block;margin:14px 0 6px">Arquivo da versão Premium</label>
+        <input id="adminToolPremiumFile" type="file" accept=".xlsx,.xls" style="width:100%;max-width:100%">
+        <p style="font-size:12px;color:#66716d;margin:12px 0 0">Limite de 10 MB por arquivo. Os arquivos ficam no bucket privado do Supabase.</p>
+      </div>
       <label style="display:flex;gap:8px;align-items:center;margin:18px 0"><input type="checkbox" id="adminToolActive"> Publicar ferramenta (visível aos usuários elegíveis)</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="primary-btn" id="adminToolSaveButton" type="submit">Salvar planilha</button>
@@ -1791,10 +1800,35 @@ if (membershipError) {
     const toolForm = document.getElementById("adminToolForm");
     const toolField = id => document.getElementById(id);
     let adminToolRows = [];
+    const TOOL_BUCKET = "entre-nos-planilhas";
+    const TOOL_MAX_BYTES = 10 * 1024 * 1024;
+    function validateToolExcel(file) {
+      if (!file) return;
+      if (!/\.(xlsx|xls)$/i.test(file.name)) throw new Error("Selecione um arquivo Excel .xlsx ou .xls.");
+      if (file.size === 0 || file.size > TOOL_MAX_BYTES) throw new Error("O arquivo deve ter entre 1 byte e 10 MB.");
+    }
+    async function uploadToolExcel(file, phase, version) {
+      validateToolExcel(file);
+      // Nome exclusivo: evita substituir planilhas que usuários já baixam.
+      const extension = file.name.toLowerCase().endsWith(".xlsx") ? "xlsx" : "xls";
+      const unique = crypto.randomUUID();
+      const path = `${phase}/Arquivos/${version}/${unique}.${extension}`;
+      const contentType = extension === "xlsx"
+        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        : "application/vnd.ms-excel";
+      const { error } = await client.storage.from(TOOL_BUCKET).upload(path, file, {
+        contentType, upsert: false, cacheControl: "3600"
+      });
+      if (error) throw new Error("Falha no envio do arquivo " + file.name + ": " + error.message);
+      return path;
+    }
+
     function resetAdminToolForm() {
       toolForm.reset();
       toolField("adminToolId").value = "";
       toolField("adminToolCategory").value = "planilha";
+      toolField("adminToolFreeFile").value = "";
+      toolField("adminToolPremiumFile").value = "";
       toolField("toolEditorHeading").textContent = "Nova planilha";
       toolField("adminToolMessage").textContent = "";
     }
@@ -1829,6 +1863,8 @@ if (membershipError) {
           toolField("adminToolCategory").value = tool.category || "planilha";
           toolField("adminToolFreePath").value = tool.free_file_path || "";
           toolField("adminToolPremiumPath").value = tool.premium_file_path || "";
+          toolField("adminToolFreeFile").value = "";
+          toolField("adminToolPremiumFile").value = "";
           toolField("adminToolActive").checked = tool.is_active === true;
           toolField("toolEditorHeading").textContent = "Editar planilha";
           toolField("adminToolMessage").textContent = "Editando: " + tool.title;
@@ -1852,13 +1888,35 @@ if (membershipError) {
       event.preventDefault();
       const message = toolField("adminToolMessage");
       const save = toolField("adminToolSaveButton");
-      const free = toolField("adminToolFreePath").value.trim();
-      const premium = toolField("adminToolPremiumPath").value.trim();
-      if (!free && !premium) {message.textContent = "Informe ao menos um caminho de arquivo.";return;}
+      let free = toolField("adminToolFreePath").value.trim();
+      let premium = toolField("adminToolPremiumPath").value.trim();
+      const freeFile = toolField("adminToolFreeFile").files[0];
+      const premiumFile = toolField("adminToolPremiumFile").files[0];
+      if (!free && !premium && !freeFile && !premiumFile) {
+        message.textContent = "Informe ao menos um caminho ou selecione um arquivo Excel.";
+        return;
+      }
+      try { validateToolExcel(freeFile); validateToolExcel(premiumFile); }
+      catch (error) { message.textContent = error.message; return; }
       if (toolField("adminToolActive").checked && !confirm("Publicar esta ferramenta para os usuários elegíveis?")) return;
       save.disabled = true;
-      message.textContent = "Salvando...";
+      toolField("adminToolCancelButton").disabled = true;
+      message.textContent = "Preparando salvamento...";
       try {
+        const phase = toolField("adminToolPhase").value;
+        if (freeFile) {
+          message.textContent = "Enviando arquivo gratuito...";
+          free = await uploadToolExcel(freeFile, phase, "Gratuito");
+          toolField("adminToolFreePath").value = free;
+          toolField("adminToolFreeFile").value = "";
+        }
+        if (premiumFile) {
+          message.textContent = "Enviando arquivo Premium...";
+          premium = await uploadToolExcel(premiumFile, phase, "Premium");
+          toolField("adminToolPremiumPath").value = premium;
+          toolField("adminToolPremiumFile").value = "";
+        }
+        message.textContent = "Salvando cadastro da planilha...";
         const {error} = await client.rpc("admin_save_downloadable_tool", {
           p_id: toolField("adminToolId").value || null,
           p_title: toolField("adminToolTitle").value.trim(),
@@ -1876,7 +1934,7 @@ if (membershipError) {
       } catch (error) {
         console.error("Erro ao salvar ferramenta:",error);
         message.textContent = "Erro ao salvar: " + error.message;
-      } finally {save.disabled = false;}
+      } finally {save.disabled = false; toolField("adminToolCancelButton").disabled = false;}
     });
 
     // NAVEGAÇÃO ENTRE AS PÁGINAS
