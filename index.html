@@ -1887,7 +1887,105 @@ list.appendChild(item);
     list.textContent = "Não foi possível carregar os questionários.";
   }
 }
+async function loadPublishedQuestionnaires() {
+  const list = document.getElementById("publishedQuestionnairesList");
+  if (!list) return;
 
+  list.textContent = "Carregando questionários...";
+
+  try {
+    const { data: questionnaires, error } = await client
+      .from("assessment_questionnaires")
+      .select("id, title, description, is_active")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    list.replaceChildren();
+
+    let publishedCount = 0;
+
+    for (const questionnaire of questionnaires || []) {
+      const { data: versions, error: versionError } = await client
+        .from("assessment_versions")
+        .select("id, version_number")
+        .eq("questionnaire_id", questionnaire.id)
+        .eq("status", "published")
+        .order("version_number", { ascending: false })
+        .limit(1);
+
+      if (versionError) throw versionError;
+      if (!versions || versions.length === 0) continue;
+
+      publishedCount++;
+
+      const versionId = versions[0].id;
+
+      const item = document.createElement("div");
+      item.style.cssText =
+        "padding:16px 0; border-bottom:1px solid #ddd;";
+
+      const title = document.createElement("h4");
+      title.textContent = questionnaire.title;
+
+      const description = document.createElement("p");
+      description.textContent =
+        questionnaire.description || "Questionário de autoconhecimento.";
+
+      const answerButton = document.createElement("button");
+      answerButton.type = "button";
+      answerButton.className = "primary-btn";
+      answerButton.textContent = "Responder questionário";
+
+      answerButton.addEventListener("click", async () => {
+        answerButton.disabled = true;
+
+        try {
+          await startAssessmentAttempt(versionId);
+
+          document.querySelectorAll(".page").forEach(page => {
+            page.classList.add("hidden");
+            page.classList.remove("active");
+          });
+
+          const answerPage =
+            document.getElementById("page-assessment-answer");
+
+          answerPage.classList.remove("hidden");
+          answerPage.classList.add("active");
+
+          document.getElementById("assessmentAnswerTitle").textContent =
+            questionnaire.title;
+
+          document.getElementById("assessmentAnswerDescription").textContent =
+            questionnaire.description || "Responda às perguntas.";
+
+          await loadAssessmentQuestions(versionId);
+
+          window.scrollTo(0, 0);
+
+        } catch (error) {
+          console.error(error);
+          alert("Erro ao iniciar questionário: " + error.message);
+        } finally {
+          answerButton.disabled = false;
+        }
+      });
+
+      item.append(title, description, answerButton);
+      list.appendChild(item);
+    }
+
+    if (publishedCount === 0) {
+      list.textContent = "Nenhum questionário disponível no momento.";
+    }
+
+  } catch (error) {
+    console.error("Erro ao carregar questionários publicados:", error);
+    list.textContent = "Não foi possível carregar os questionários.";
+  }
+}
 async function loadQuestionnaireVersions() {
   const list = document.getElementById("questionnaireVersionsList");
 
