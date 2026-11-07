@@ -1675,6 +1675,10 @@ if (membershipError) {
     navItems.forEach((item) => {
 item.addEventListener("click", async () => {
         const pageName = item.dataset.page;
+if (pageName === "thermometers") {
+  loadPublishedQuestionnaires();
+}
+  
 if (pageName === "admin") {
   const { data: autorizado, error } = await client.rpc("is_admin");
 
