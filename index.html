@@ -689,8 +689,50 @@
   </button>
 </div>
 
+  <div class="card" style="margin-top:20px">
+    <h3>Gerenciar Planilhas</h3>
+    <p>Cadastre, edite e publique planilhas para Namoro, Noivado ou Casamento.</p>
+    <button id="manageDownloadableToolsButton" class="primary-btn" type="button">Gerenciar planilhas</button>
+  </div>
+
 </section> <!-- GERENCIAMENTO DE PERGUNTAS -->
         
+<!-- GERENCIAMENTO ADMINISTRATIVO DE PLANILHAS -->
+<section id="page-manage-downloadable-tools" class="page hidden">
+  <h1 class="page-title">Gerenciar Planilhas</h1>
+  <p class="page-description">Cadastre e edite as ferramentas do Entre Nós. Os arquivos devem ser enviados previamente ao bucket privado <strong>entre-nos-planilhas</strong> no Supabase Storage.</p>
+  <div class="card">
+    <h3 id="toolEditorHeading">Nova planilha</h3>
+    <form id="adminToolForm">
+      <input type="hidden" id="adminToolId">
+      <label for="adminToolTitle" style="display:block;margin:12px 0 6px">Título *</label>
+      <input id="adminToolTitle" required maxlength="200" style="width:100%;box-sizing:border-box;padding:12px" placeholder="Ex.: Planejamento do casamento">
+      <label for="adminToolDescription" style="display:block;margin:12px 0 6px">Descrição</label>
+      <textarea id="adminToolDescription" rows="3" style="width:100%;box-sizing:border-box;padding:12px"></textarea>
+      <label for="adminToolPhase" style="display:block;margin:12px 0 6px">Fase do relacionamento *</label>
+      <select id="adminToolPhase" required style="width:100%;padding:12px"><option value="namoro">Namoro</option><option value="noivado">Noivado</option><option value="casamento">Casamento</option></select>
+      <label for="adminToolCategory" style="display:block;margin:12px 0 6px">Categoria *</label>
+      <input id="adminToolCategory" required value="planilha" style="width:100%;box-sizing:border-box;padding:12px">
+      <label for="adminToolFreePath" style="display:block;margin:12px 0 6px">Caminho da versão gratuita (no Storage)</label>
+      <input id="adminToolFreePath" style="width:100%;box-sizing:border-box;padding:12px" placeholder="Noivado/Pasta/Gratuito/arquivo.xlsx">
+      <label for="adminToolPremiumPath" style="display:block;margin:12px 0 6px">Caminho da versão Premium (no Storage)</label>
+      <input id="adminToolPremiumPath" style="width:100%;box-sizing:border-box;padding:12px" placeholder="Noivado/Pasta/Premium/arquivo.xlsx">
+      <label style="display:flex;gap:8px;align-items:center;margin:18px 0"><input type="checkbox" id="adminToolActive"> Publicar ferramenta (visível aos usuários elegíveis)</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="primary-btn" id="adminToolSaveButton" type="submit">Salvar planilha</button>
+        <button class="primary-btn" id="adminToolCancelButton" type="button">Limpar / novo cadastro</button>
+      </div>
+      <p id="adminToolMessage" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h3>Planilhas cadastradas</h3>
+    <button id="adminToolRefreshButton" class="primary-btn" type="button">Atualizar lista</button>
+    <p id="adminToolListStatus" role="status"></p>
+    <div id="adminToolList"></div>
+  </div>
+</section>
+
 <!-- GERENCIAMENTO DE QUESTIONÁRIOS -->
 <section id="page-manage-questionnaires" class="page hidden">
   <h1 class="page-title">Gerenciar Questionários</h1>
@@ -1744,6 +1786,98 @@ if (membershipError) {
         button.textContent = oldLabel;
       }
     }
+
+    // PAINEL ADMINISTRATIVO DE PLANILHAS (RPCs com validação de administrador no servidor).
+    const toolForm = document.getElementById("adminToolForm");
+    const toolField = id => document.getElementById(id);
+    let adminToolRows = [];
+    function resetAdminToolForm() {
+      toolForm.reset();
+      toolField("adminToolId").value = "";
+      toolField("adminToolCategory").value = "planilha";
+      toolField("toolEditorHeading").textContent = "Nova planilha";
+      toolField("adminToolMessage").textContent = "";
+    }
+    async function loadAdminDownloadableTools() {
+      const list = toolField("adminToolList");
+      const status = toolField("adminToolListStatus");
+      list.replaceChildren();
+      status.textContent = "Carregando planilhas...";
+      const { data, error } = await client.rpc("admin_list_downloadable_tools");
+      if (error) {
+        status.textContent = "Não foi possível consultar as planilhas: " + error.message;
+        return;
+      }
+      adminToolRows = data || [];
+      status.textContent = adminToolRows.length ? `${adminToolRows.length} ferramenta(s) cadastrada(s).` : "Nenhuma planilha cadastrada.";
+      for (const tool of adminToolRows) {
+        const card = document.createElement("div");
+        card.style.cssText = "border-top:1px solid #ddd;padding:15px 0";
+        const title = document.createElement("strong");
+        title.textContent = tool.title;
+        const info = document.createElement("p");
+        info.textContent = `${tool.relationship_phase} · ${tool.category} · ${tool.is_active ? "Publicada" : "Desativada"}`;
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "primary-btn";
+        edit.textContent = "Editar";
+        edit.addEventListener("click", () => {
+          toolField("adminToolId").value = tool.id;
+          toolField("adminToolTitle").value = tool.title || "";
+          toolField("adminToolDescription").value = tool.description || "";
+          toolField("adminToolPhase").value = tool.relationship_phase;
+          toolField("adminToolCategory").value = tool.category || "planilha";
+          toolField("adminToolFreePath").value = tool.free_file_path || "";
+          toolField("adminToolPremiumPath").value = tool.premium_file_path || "";
+          toolField("adminToolActive").checked = tool.is_active === true;
+          toolField("toolEditorHeading").textContent = "Editar planilha";
+          toolField("adminToolMessage").textContent = "Editando: " + tool.title;
+          toolForm.scrollIntoView({behavior:"smooth",block:"start"});
+        });
+        card.append(title, info, edit);
+        list.appendChild(card);
+      }
+    }
+    toolField("manageDownloadableToolsButton").addEventListener("click", async () => {
+      document.querySelectorAll(".page").forEach(page => {page.classList.remove("active");page.classList.add("hidden");});
+      const page = toolField("page-manage-downloadable-tools");
+      page.classList.remove("hidden");
+      page.classList.add("active");
+      window.scrollTo(0,0);
+      await loadAdminDownloadableTools();
+    });
+    toolField("adminToolRefreshButton").addEventListener("click", loadAdminDownloadableTools);
+    toolField("adminToolCancelButton").addEventListener("click", resetAdminToolForm);
+    toolForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const message = toolField("adminToolMessage");
+      const save = toolField("adminToolSaveButton");
+      const free = toolField("adminToolFreePath").value.trim();
+      const premium = toolField("adminToolPremiumPath").value.trim();
+      if (!free && !premium) {message.textContent = "Informe ao menos um caminho de arquivo.";return;}
+      if (toolField("adminToolActive").checked && !confirm("Publicar esta ferramenta para os usuários elegíveis?")) return;
+      save.disabled = true;
+      message.textContent = "Salvando...";
+      try {
+        const {error} = await client.rpc("admin_save_downloadable_tool", {
+          p_id: toolField("adminToolId").value || null,
+          p_title: toolField("adminToolTitle").value.trim(),
+          p_description: toolField("adminToolDescription").value.trim(),
+          p_relationship_phase: toolField("adminToolPhase").value,
+          p_category: toolField("adminToolCategory").value.trim(),
+          p_free_file_path: free || null,
+          p_premium_file_path: premium || null,
+          p_is_active: toolField("adminToolActive").checked
+        });
+        if (error) throw error;
+        resetAdminToolForm();
+        message.textContent = "Planilha salva com sucesso!";
+        await loadAdminDownloadableTools();
+      } catch (error) {
+        console.error("Erro ao salvar ferramenta:",error);
+        message.textContent = "Erro ao salvar: " + error.message;
+      } finally {save.disabled = false;}
+    });
 
     // NAVEGAÇÃO ENTRE AS PÁGINAS
     const navItems = document.querySelectorAll(".nav-item");
