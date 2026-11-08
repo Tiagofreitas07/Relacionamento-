@@ -562,7 +562,7 @@
           <div class="avatar" id="userAvatar">U</div>
           <div>
             <strong id="sidebarUserName">Usuário</strong>
-            <small>Conta gratuita</small>
+            <small id="sidebarPlanLabel">Consultando plano...</small>
           </div>
         </div>
         <button id="logoutButton" class="logout-btn">↪ Sair da conta</button>
@@ -1256,6 +1256,13 @@
             <p id="accountName">Nome: —</p>
             <p id="accountEmail" style="margin-top:8px">E-mail: —</p>
           </div>
+          <div class="card" style="margin-top:20px" aria-live="polite">
+            <h3>Minha assinatura</h3>
+            <p id="accountPlan">Plano atual: Consultando...</p>
+            <p id="accountSubscriptionStatus" style="margin-top:10px">Situação: Consultando...</p>
+            <p id="accountSubscriptionExpiry" style="margin-top:10px">Vencimento: —</p>
+            <p id="accountSubscriptionBenefits" style="margin-top:14px">Verificando benefícios disponíveis...</p>
+          </div>
         </section>
 
         <div class="footer-note">
@@ -1539,6 +1546,55 @@ document.getElementById("acceptInviteButton").addEventListener("click", async ()
   }
 });
 
+    // Exibição informativa da assinatura. As permissões continuam sendo
+    // verificadas pelas funções e políticas existentes no Supabase.
+    async function loadAccountSubscription(user) {
+      const planEl = document.getElementById("accountPlan");
+      const statusEl = document.getElementById("accountSubscriptionStatus");
+      const expiryEl = document.getElementById("accountSubscriptionExpiry");
+      const benefitsEl = document.getElementById("accountSubscriptionBenefits");
+      const sidebarEl = document.getElementById("sidebarPlanLabel");
+      planEl.textContent = "Plano atual: Consultando...";
+      statusEl.textContent = "Situação: Consultando...";
+      expiryEl.textContent = "Vencimento: —";
+      benefitsEl.textContent = "Verificando benefícios disponíveis...";
+      sidebarEl.textContent = "Consultando plano...";
+
+      const { data: subscription, error } = await client
+        .from("user_subscriptions")
+        .select("plan, status, expires_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("Erro ao consultar assinatura:", error);
+        planEl.textContent = "Plano atual: Não foi possível consultar";
+        statusEl.textContent = "Situação: Indisponível";
+        benefitsEl.textContent = "Tente atualizar a página. Seu acesso às ferramentas não foi alterado.";
+        sidebarEl.textContent = "Plano indisponível";
+        return;
+      }
+
+      const isPremiumPlan = subscription?.plan === "premium";
+      const active = subscription?.status === "active";
+      const expiry = subscription?.expires_at ? new Date(subscription.expires_at) : null;
+      const validExpiry = expiry && !Number.isNaN(expiry.getTime());
+      const expired = validExpiry && expiry.getTime() <= Date.now();
+      const premiumActive = isPremiumPlan && active && !expired;
+      const statusNames = { active: "Ativa", canceled: "Cancelada", cancelled: "Cancelada", expired: "Expirada", inactive: "Inativa", past_due: "Pagamento pendente" };
+      let status = subscription ? (statusNames[subscription.status] || subscription.status || "Não informado") : "Sem assinatura cadastrada";
+      if (isPremiumPlan && expired) status = "Expirada";
+      const plan = isPremiumPlan ? "Premium" : "Gratuito";
+      planEl.textContent = "Plano atual: " + plan;
+      statusEl.textContent = "Situação: " + status;
+      expiryEl.textContent = isPremiumPlan && validExpiry
+        ? "Vencimento: " + new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(expiry) + " (Brasília)"
+        : "Vencimento: " + (isPremiumPlan ? "Não informado" : "Não se aplica");
+      benefitsEl.textContent = premiumActive
+        ? "Benefícios: ferramentas gratuitas e Premium, conforme a fase do relacionamento."
+        : "Benefícios: ferramentas gratuitas. O acesso Premium depende de uma assinatura válida.";
+      sidebarEl.textContent = premiumActive ? "Conta Premium" : "Conta gratuita";
+    }
+
     async function loadUser(user) {
       if (!user) return;
 // Verificar permissão administrativa
@@ -1635,6 +1691,7 @@ if (membershipError) {
       }
 
       updatePhaseDisplay();
+      await loadAccountSubscription(user);
       authScreen.classList.add("hidden");
       appScreen.classList.remove("hidden");
 
