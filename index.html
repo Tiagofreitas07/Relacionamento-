@@ -694,9 +694,26 @@
     <p>Cadastre, edite e publique planilhas para Namoro, Noivado ou Casamento.</p>
     <button id="manageDownloadableToolsButton" class="primary-btn" type="button">Gerenciar planilhas</button>
   </div>
+  <div class="card" style="margin-top:20px">
+    <h3>Gerenciar Assinaturas</h3>
+    <p>Consulte os planos e administre assinaturas de usuários cadastrados.</p>
+    <button id="manageSubscriptionsButton" class="primary-btn" type="button">Gerenciar assinaturas</button>
+  </div>
 
 </section> <!-- GERENCIAMENTO DE PERGUNTAS -->
         
+<!-- GERENCIAMENTO ADMINISTRATIVO DE ASSINATURAS -->
+<section id="page-manage-subscriptions" class="page hidden">
+  <h1 class="page-title">Gerenciar Assinaturas</h1>
+  <p class="page-description">Consulte usuários e configure planos. Alterações são gravadas no Supabase e protegidas pelas políticas administrativas.</p>
+  <div class="card">
+    <h3>Usuários cadastrados</h3>
+    <button id="refreshSubscriptionsButton" class="primary-btn" type="button">Atualizar lista</button>
+    <p id="subscriptionsAdminStatus" role="status" style="margin-top:14px">Abra esta área para carregar os usuários.</p>
+    <div id="subscriptionsAdminList" style="margin-top:14px"></div>
+  </div>
+</section>
+
 <!-- GERENCIAMENTO ADMINISTRATIVO DE PLANILHAS -->
 <section id="page-manage-downloadable-tools" class="page hidden">
   <h1 class="page-title">Gerenciar Planilhas</h1>
@@ -1852,6 +1869,131 @@ if (membershipError) {
         button.textContent = oldLabel;
       }
     }
+
+    // GERENCIAMENTO ADMINISTRATIVO DE ASSINATURAS
+    const subscriptionsAdminList = document.getElementById("subscriptionsAdminList");
+    const subscriptionsAdminStatus = document.getElementById("subscriptionsAdminStatus");
+    const subscriptionInputStyle = "width:100%;padding:10px;border:1px solid #e9e8e2;border-radius:8px;box-sizing:border-box";
+
+    async function loadAdminSubscriptions() {
+      subscriptionsAdminList.replaceChildren();
+      subscriptionsAdminStatus.textContent = "Consultando usuários e assinaturas...";
+      const { data: isAdmin, error: authError } = await client.rpc("is_app_admin");
+      if (authError || isAdmin !== true) {
+        subscriptionsAdminStatus.textContent = "Acesso restrito a administradores.";
+        return;
+      }
+      const [profilesResult, subscriptionsResult] = await Promise.all([
+        client.from("profiles").select("id, full_name, relationship_phase").order("full_name"),
+        client.from("user_subscriptions").select("user_id, plan, status, expires_at")
+      ]);
+      if (profilesResult.error || subscriptionsResult.error) {
+        subscriptionsAdminStatus.textContent = "Não foi possível carregar os dados: " +
+          (profilesResult.error || subscriptionsResult.error).message;
+        return;
+      }
+      const subscriptions = new Map((subscriptionsResult.data || []).map(row => [row.user_id, row]));
+      const profiles = profilesResult.data || [];
+      const now = Date.now();
+      const activePremiumCount = profiles.filter(profile => {
+        const sub = subscriptions.get(profile.id);
+        return sub?.plan === "premium" && sub.status === "active" &&
+          (!sub.expires_at || new Date(sub.expires_at).getTime() > now);
+      }).length;
+      subscriptionsAdminStatus.textContent = `${profiles.length} usuário(s) · ${activePremiumCount} Premium ativo(s).`;
+      if (!profiles.length) return;
+      for (const profile of profiles) {
+        const sub = subscriptions.get(profile.id);
+        const card = document.createElement("div");
+        card.style.cssText = "border-top:1px solid #e9e8e2;padding:18px 0";
+        const heading = document.createElement("strong");
+        heading.textContent = profile.full_name || "Usuário sem nome";
+        const detail = document.createElement("p");
+        const phaseNames = {namoro:"Namoro",noivado:"Noivado",casamento:"Casamento"};
+        detail.textContent = `${phaseNames[profile.relationship_phase] || "Fase não definida"} · ID: ${profile.id}`;
+        detail.style.cssText = "overflow-wrap:anywhere;margin:7px 0 14px;font-size:12px";
+        const form = document.createElement("form");
+        form.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end";
+        const makeField = (title, element) => {
+          const label = document.createElement("label");
+          label.style.cssText = "display:block;font-size:12px;font-weight:600";
+          label.append(document.createTextNode(title));
+          element.style.cssText = subscriptionInputStyle + ";margin-top:6px";
+          label.appendChild(element);
+          return label;
+        };
+        const plan = document.createElement("select");
+        for (const [value, label] of [["free","Gratuito"],["premium","Premium"]]) {
+          const option = new Option(label, value);
+          plan.add(option);
+        }
+        plan.value = sub?.plan || "free";
+        const status = document.createElement("select");
+        for (const [value, label] of [["active","Ativa"],["canceled","Cancelada"]]) {
+          status.add(new Option(label, value));
+        }
+        // Valores não previstos são preservados até o administrador escolher outro status.
+        if (sub?.status && !["active", "canceled"].includes(sub.status)) {
+          status.add(new Option(sub.status, sub.status));
+        }
+        status.value = sub?.status || "active";
+        const expiry = document.createElement("input");
+        expiry.type = "date";
+        expiry.value = sub?.expires_at ? sub.expires_at.slice(0,10) : "";
+        expiry.title = "Válido até o final do dia selecionado, no horário de Brasília";
+        const expiryLabel = makeField("Vencimento Premium (opcional)", expiry);
+        const save = document.createElement("button");
+        save.className = "primary-btn";
+        save.type = "submit";
+        save.textContent = "Salvar assinatura";
+        const feedback = document.createElement("p");
+        feedback.style.cssText = "grid-column:1/-1;font-size:12px;margin:0";
+        feedback.setAttribute("role", "status");
+        form.append(makeField("Plano", plan), makeField("Situação", status), expiryLabel, save, feedback);
+        form.addEventListener("submit", async event => {
+          event.preventDefault();
+          if (plan.value === "premium" && status.value === "active" && !expiry.value &&
+              !confirm("Ativar Premium sem vencimento? O acesso permanecerá ativo até ser cancelado.")) return;
+          if (!confirm(`Confirmar alteração da assinatura de ${profile.full_name || profile.id}?`)) return;
+          save.disabled = true;
+          feedback.textContent = "Salvando...";
+          try {
+            const expiration = plan.value === "premium" && expiry.value
+              ? new Date(`${expiry.value}T23:59:59-03:00`).toISOString()
+              : null;
+            const { error } = await client.from("user_subscriptions").upsert({
+              user_id: profile.id,
+              plan: plan.value,
+              status: status.value,
+              expires_at: expiration
+            }, {onConflict:"user_id"});
+            if (error) throw error;
+            feedback.textContent = "Assinatura salva com sucesso.";
+            await loadAdminSubscriptions();
+          } catch (error) {
+            console.error("Erro ao salvar assinatura:", error);
+            feedback.textContent = "Erro ao salvar: " + error.message;
+          } finally {
+            save.disabled = false;
+          }
+        });
+        card.append(heading, detail, form);
+        subscriptionsAdminList.appendChild(card);
+      }
+    }
+
+    document.getElementById("manageSubscriptionsButton").addEventListener("click", async () => {
+      document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+        page.classList.add("hidden");
+      });
+      const page = document.getElementById("page-manage-subscriptions");
+      page.classList.remove("hidden");
+      page.classList.add("active");
+      window.scrollTo(0, 0);
+      await loadAdminSubscriptions();
+    });
+    document.getElementById("refreshSubscriptionsButton").addEventListener("click", loadAdminSubscriptions);
 
     // PAINEL ADMINISTRATIVO DE PLANILHAS (RPCs com validação de administrador no servidor).
     const toolForm = document.getElementById("adminToolForm");
