@@ -1939,7 +1939,15 @@ if (membershipError) {
         status.value = sub?.status || "active";
         const expiry = document.createElement("input");
         expiry.type = "date";
-        expiry.value = sub?.expires_at ? sub.expires_at.slice(0,10) : "";
+        expiry.value = sub?.expires_at
+          ? (() => {
+              const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit"
+              }).formatToParts(new Date(sub.expires_at));
+              const part = type => parts.find(item => item.type === type)?.value;
+              return `${part("year")}-${part("month")}-${part("day")}`;
+            })()
+          : "";
         expiry.title = "Válido até o final do dia selecionado, no horário de Brasília";
         const expiryLabel = makeField("Vencimento Premium (opcional)", expiry);
         const save = document.createElement("button");
