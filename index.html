@@ -1279,6 +1279,28 @@
             <p id="accountSubscriptionStatus" style="margin-top:10px">Situação: Consultando...</p>
             <p id="accountSubscriptionExpiry" style="margin-top:10px">Vencimento: —</p>
             <p id="accountSubscriptionBenefits" style="margin-top:14px">Verificando benefícios disponíveis...</p>
+         
+<div id="premiumPlans" style="margin-top:24px">
+  <h3>Conheça o Entre Nós Premium</h3>
+  <p>Escolha o plano que melhor combina com você.</p>
+
+  <div class="card">
+    <h4>Premium Mensal</h4>
+    <p>R$ 19,90 por mês</p>
+    <button type="button" id="premiumMonthlyButton" disabled>
+      Contratação em configuração
+    </button>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h4>Premium Anual</h4>
+    <p>R$ 179,90 por ano</p>
+    <button type="button" id="premiumAnnualButton" disabled>
+      Contratação em configuração
+    </button>
+  </div>
+</div>
+
           </div>
         </section>
 
@@ -1579,6 +1601,7 @@ document.getElementById("acceptInviteButton").addEventListener("click", async ()
 
       const { data: subscription, error } = await client
         .from("user_subscriptions")
+       
         .select("plan, status, expires_at")
         .eq("user_id", user.id)
         .maybeSingle();
