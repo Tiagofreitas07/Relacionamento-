@@ -698,6 +698,10 @@
     <h3>Gerenciar Assinaturas</h3>
     <p>Consulte os planos e administre assinaturas de usuários cadastrados.</p>
     <button id="manageSubscriptionsButton" class="primary-btn" type="button">Gerenciar assinaturas</button>
+    <button id="testMercadoPagoPlansButton" class="primary-btn" type="button" style="margin-top:12px">
+  Testar conexão com Mercado Pago
+</button>
+<p id="testMercadoPagoPlansResult" style="margin-top:10px"></p>
   </div>
 
 </section> <!-- GERENCIAMENTO DE PERGUNTAS -->
@@ -1635,6 +1639,32 @@ document.getElementById("acceptInviteButton").addEventListener("click", async ()
       sidebarEl.textContent = premiumActive ? "Conta Premium" : "Conta gratuita";
     }
 
+
+    // TESTAR CONEXÃO COM MERCADO PAGO
+document.getElementById("testMercadoPagoPlansButton")
+  ?.addEventListener("click", async () => {
+    const resultado = document.getElementById("testMercadoPagoPlansResult");
+    const botao = document.getElementById("testMercadoPagoPlansButton");
+
+    botao.disabled = true;
+    resultado.textContent = "Consultando Mercado Pago...";
+
+    try {
+      const { data, error } = await client.functions.invoke(
+        "mercadopago-planos",
+        { body: {} }
+      );
+
+      if (error) throw error;
+
+      resultado.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      console.error("Erro Mercado Pago:", error);
+      resultado.textContent = "Erro ao consultar planos. Verifique o console.";
+    } finally {
+      botao.disabled = false;
+    }
+  });
     async function loadUser(user) {
       if (!user) return;
 // Verificar permissão administrativa
